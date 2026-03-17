@@ -1,0 +1,1813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FPV — First Person View Drones</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap');
+
+:root {
+  --bg: #06080c;
+  --panel: rgba(6,8,12,0.75);
+  --border: rgba(255,255,255,0.06);
+  --accent: #00e5ff;
+  --accent2: #ff3d5a;
+  --accent3: #ffe03d;
+  --text: rgba(255,255,255,0.7);
+  --text-dim: rgba(255,255,255,0.3);
+  --text-bright: rgba(255,255,255,0.9);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  overflow-x: hidden;
+  cursor: default;
+}
+
+/* ═══ CANVAS BACKGROUND ═══ */
+#bgCanvas {
+  position: fixed; top:0; left:0; width:100vw; height:100vh;
+  z-index: 0; pointer-events: none;
+}
+
+/* ═══ HEADER ═══ */
+header {
+  position: fixed; top:0; left:0; right:0; z-index:100;
+  padding: 20px 36px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(180deg, rgba(6,8,12,0.95) 0%, rgba(6,8,12,0) 100%);
+  pointer-events: none;
+}
+header * { pointer-events: all; }
+.logo {
+  font-family:'Syne',sans-serif; font-weight:800; font-size:22px;
+  letter-spacing:4px; text-transform:uppercase; color:#fff;
+}
+.logo span { color:var(--accent); }
+
+nav {
+  display:flex; gap:3px;
+  background:var(--panel); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+  border:1px solid var(--border); border-radius:10px; padding:4px;
+}
+nav a {
+  padding:8px 20px; font-family:'Syne',sans-serif; font-weight:600;
+  font-size:11px; letter-spacing:2px; text-transform:uppercase;
+  text-decoration:none; color:var(--text-dim); border-radius:7px;
+  transition:all .25s; white-space:nowrap;
+}
+nav a:hover { color:rgba(255,255,255,0.6); }
+nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
+
+/* ═══ MAIN SECTIONS ═══ */
+.section {
+  min-height:100vh; position:relative; z-index:1;
+  padding:120px 48px 80px; display:none;
+}
+.section.active { display:block; }
+
+/* ═══ HERO ═══ */
+#hero {
+  flex-direction:column; justify-content:center; align-items:center;
+  text-align:center; min-height:100vh; padding-top:60px;
+}
+#hero.active { display:flex; }
+.hero-title {
+  font-family:'Syne',sans-serif; font-weight:800;
+  font-size:clamp(48px,8vw,96px); letter-spacing:6px;
+  text-transform:uppercase; color:#fff; line-height:1;
+  margin-bottom:16px;
+  animation: fadeUp .8s ease-out both;
+}
+.hero-title span { color:var(--accent); }
+.hero-sub {
+  font-family:'Source Serif 4',serif; font-size:clamp(16px,2vw,22px);
+  color:var(--text); max-width:600px; line-height:1.7;
+  animation: fadeUp .8s ease-out .15s both;
+}
+.hero-stats {
+  display:flex; gap:48px; margin-top:48px;
+  animation: fadeUp .8s ease-out .3s both;
+}
+.hero-stat {
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+}
+.hero-stat .num {
+  font-family:'Syne',sans-serif; font-weight:700; font-size:32px; color:#fff;
+}
+.hero-stat .num span { color:var(--accent); font-size:20px; }
+.hero-stat .label {
+  font-size:9px; letter-spacing:2.5px; text-transform:uppercase; color:var(--text-dim);
+}
+.scroll-hint {
+  position:absolute; bottom:36px; left:50%; transform:translateX(-50%);
+  font-size:9px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--text-dim); animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(24px); }
+  to { opacity:1; transform:translateY(0); }
+}
+@keyframes pulse { 0%,100%{opacity:.3} 50%{opacity:.7} }
+
+/* ═══ CONTENT GRID ═══ */
+.content-grid {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:24px; max-width:1200px; margin:0 auto;
+}
+
+/* ═══ CARDS ═══ */
+.card {
+  background:var(--panel); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--border); border-radius:14px;
+  padding:28px 26px; transition:all .3s;
+  animation: fadeUp .6s ease-out both;
+}
+.card:hover { border-color:rgba(255,255,255,0.12); transform:translateY(-2px); }
+.card h3 {
+  font-family:'Syne',sans-serif; font-weight:700; font-size:16px;
+  color:#fff; margin-bottom:10px; letter-spacing:1px;
+}
+.card p {
+  font-family:'Source Serif 4',serif; font-size:13.5px;
+  line-height:1.7; color:var(--text); margin-bottom:12px;
+}
+.card .tag {
+  display:inline-block; padding:3px 10px; border-radius:20px;
+  font-size:9px; letter-spacing:1.5px; text-transform:uppercase;
+  background:rgba(0,229,255,0.08); color:var(--accent); margin:2px 3px 2px 0;
+  border:1px solid rgba(0,229,255,0.15);
+}
+.card .tag.red { background:rgba(255,61,90,0.08); color:var(--accent2); border-color:rgba(255,61,90,0.15); }
+.card .tag.yellow { background:rgba(255,224,61,0.08); color:var(--accent3); border-color:rgba(255,224,61,0.15); }
+
+/* ═══ SECTION HEADERS ═══ */
+.section-head {
+  text-align:center; margin-bottom:48px;
+  animation: fadeUp .6s ease-out both;
+}
+.section-head h2 {
+  font-family:'Syne',sans-serif; font-weight:800;
+  font-size:clamp(28px,4vw,42px); color:#fff;
+  letter-spacing:3px; text-transform:uppercase; margin-bottom:8px;
+}
+.section-head p {
+  font-family:'Source Serif 4',serif; font-size:16px;
+  color:var(--text-dim); max-width:560px; margin:0 auto; line-height:1.6;
+}
+
+/* ═══ SPEC TABLE ═══ */
+.spec-table {
+  width:100%; border-collapse:collapse; margin-top:16px;
+}
+.spec-table td {
+  padding:8px 0; border-bottom:1px solid var(--border); font-size:12px;
+}
+.spec-table td:first-child {
+  color:var(--text-dim); font-size:9px; letter-spacing:2px;
+  text-transform:uppercase; width:120px;
+}
+.spec-table td:last-child { color:var(--text-bright); }
+
+/* ═══ FACT BOX ═══ */
+.fact-box {
+  background:rgba(0,229,255,0.03); border-left:2px solid rgba(0,229,255,0.25);
+  padding:12px 16px; margin:14px 0; border-radius:0 10px 10px 0;
+}
+.fact-box.warn {
+  background:rgba(255,61,90,0.03); border-left-color:rgba(255,61,90,0.25);
+}
+.fact-box .fact-label {
+  font-size:8px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--accent); margin-bottom:4px; display:block;
+}
+.fact-box.warn .fact-label { color:var(--accent2); }
+.fact-box p { margin:0; font-size:12.5px; line-height:1.6; }
+
+/* ═══ ICON ROW ═══ */
+.icon-row {
+  display:flex; align-items:center; gap:10px;
+  padding:8px 0; font-size:13px;
+}
+.icon-row .icon { font-size:20px; flex-shrink:0; }
+
+/* ═══ DIAGRAM ═══ */
+.diagram-wrap {
+  position:relative; padding:32px 0; text-align:center;
+}
+.diagram-label {
+  position:absolute; background:var(--panel);
+  border:1px solid var(--border); border-radius:8px;
+  padding:6px 12px; font-size:9px; letter-spacing:1.5px;
+  text-transform:uppercase; color:var(--text);
+  white-space:nowrap;
+}
+
+/* ═══ FLIGHT MODE CARDS ═══ */
+.mode-card {
+  position:relative; overflow:hidden;
+}
+.mode-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background:var(--accent); opacity:0; transition:opacity .3s;
+}
+.mode-card:hover::before { opacity:1; }
+.mode-card.acro::before { background:var(--accent2); }
+.mode-card.gps::before { background:var(--accent3); }
+
+/* ═══ TIMELINE ═══ */
+.timeline {
+  position:relative; max-width:700px; margin:0 auto;
+  padding-left:32px;
+}
+.timeline::before {
+  content:''; position:absolute; left:7px; top:0; bottom:0;
+  width:1px; background:var(--border);
+}
+.timeline-item {
+  position:relative; margin-bottom:32px;
+  animation: fadeUp .5s ease-out both;
+}
+.timeline-item::before {
+  content:''; position:absolute; left:-28px; top:6px;
+  width:9px; height:9px; border-radius:50%;
+  background:var(--accent); border:2px solid var(--bg);
+}
+.timeline-item h4 {
+  font-family:'Syne',sans-serif; font-weight:600; font-size:13px;
+  color:#fff; letter-spacing:1px; margin-bottom:6px;
+}
+.timeline-item p {
+  font-family:'Source Serif 4',serif; font-size:13px;
+  line-height:1.7; color:var(--text);
+}
+
+/* ═══ TELEMETRY HUD ═══ */
+.telemetry {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:16px;
+  max-width:800px; margin:32px auto;
+}
+.telem-item {
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:10px; padding:16px; text-align:center;
+}
+.telem-item .telem-val {
+  font-family:'Syne',sans-serif; font-weight:700; font-size:24px;
+  color:var(--accent);
+}
+.telem-item .telem-label {
+  font-size:9px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--text-dim); margin-top:4px;
+}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:768px){
+  header { padding:14px 18px; flex-direction:column; gap:10px; }
+  nav a { padding:6px 12px; font-size:10px; letter-spacing:1px; }
+  .section { padding:100px 20px 60px; }
+  .hero-stats { flex-wrap:wrap; gap:24px; }
+  .telemetry { grid-template-columns:repeat(2,1fr); }
+  .content-grid { grid-template-columns:1fr; }
+}
+
+/* ═══ 3D MODEL TAB ═══ */
+#model3d { padding:0; }
+#model3d.active { display:block; }
+#modelCanvas {
+  width:100vw; height:100vh; display:block;
+  cursor:grab; position:relative; z-index:1;
+}
+#modelCanvas:active { cursor:grabbing; }
+
+#model-hud {
+  position:fixed; top:0; left:0; right:0; bottom:0;
+  pointer-events:none; z-index:20;
+}
+#model-legend {
+  position:absolute; top:80px; left:28px;
+  pointer-events:all; width:260px;
+  background:var(--panel); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border:1px solid var(--border); border-radius:12px;
+  padding:18px 20px; max-height:calc(100vh - 140px); overflow-y:auto;
+}
+#model-legend.hidden { display:none; }
+#model-legend h3 {
+  font-family:'Syne',sans-serif; font-weight:700; font-size:14px;
+  color:#fff; margin-bottom:12px; letter-spacing:1px;
+}
+.legend-item {
+  display:flex; align-items:center; gap:10px;
+  padding:8px 0; border-bottom:1px solid var(--border);
+  cursor:pointer; transition:all .2s;
+}
+.legend-item:last-child { border:none; }
+.legend-item:hover { padding-left:4px; }
+.legend-item .dot {
+  width:10px; height:10px; border-radius:50%; flex-shrink:0;
+}
+.legend-item .lname {
+  font-size:11px; color:var(--text); font-weight:500;
+}
+.legend-item .ldesc {
+  font-size:9px; color:var(--text-dim); margin-top:2px; line-height:1.4;
+}
+#model-info {
+  position:absolute; bottom:28px; left:50%; transform:translateX(-50%);
+  font-size:9px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--text-dim);
+}
+#model-title {
+  position:absolute; top:80px; right:28px;
+  text-align:right;
+}
+#model-title h2 {
+  font-family:'Syne',sans-serif; font-weight:800; font-size:20px;
+  color:#fff; letter-spacing:2px; text-transform:uppercase;
+}
+#model-title .sub {
+  font-size:9px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--text-dim); margin-top:4px;
+}
+.model-spec {
+  font-size:10px; color:var(--text); margin-top:8px; line-height:1.8;
+  text-align:right;
+}
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<header>
+  <div class="logo">FPV<span>.</span></div>
+  <nav id="mainNav">
+    <a href="#" class="active" data-tab="hero">Home</a>
+    <a href="#" data-tab="basics">Basics</a>
+    <a href="#" data-tab="model3d">3D Model</a>
+    <a href="#" data-tab="components">Components</a>
+    <a href="#" data-tab="physics">Physics</a>
+    <a href="#" data-tab="freestyle">Freestyle</a>
+    <a href="#" data-tab="start">Start Flying</a>
+  </nav>
+</header>
+
+<!-- ═══ HERO ═══ -->
+<section id="hero" class="section active">
+  <div class="hero-title">First Person<br><span>View</span></div>
+  <p class="hero-sub">The art and engineering of piloting racing drones through your own eyes — where physics, reflexes, and creativity converge at 150 km/h.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">150<span>+</span></div><div class="label">km/h top speed</div></div>
+    <div class="hero-stat"><div class="num">0.02<span>s</span></div><div class="label">latency glass-to-glass</div></div>
+    <div class="hero-stat"><div class="num">8<span>:</span>1</div><div class="label">thrust-to-weight</div></div>
+    <div class="hero-stat"><div class="num">6<span>DOF</span></div><div class="label">full freedom</div></div>
+  </div>
+  <div class="scroll-hint">Explore the sections above</div>
+</section>
+
+<!-- ═══ BASICS ═══ -->
+<section id="basics" class="section">
+  <div class="section-head">
+    <h2>What is <span style="color:var(--accent)">FPV</span>?</h2>
+    <p>First Person View flying puts a camera on a drone and streams the feed directly to goggles on your face — you see what the drone sees, in real-time.</p>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <h3>The Experience</h3>
+      <p>FPV flying is as close to actual flight as most humans will ever get. You're not watching a drone from the ground — you <em>are</em> the drone. Your brain adapts to the aerial perspective within minutes, and the sense of speed, height, and immersion is visceral.</p>
+      <p>Unlike DJI-style camera drones that hover autonomously, FPV quads are flown manually. Every movement is a direct input from your thumbs to the motors. It's the difference between driving an automatic car and piloting a Formula 1.</p>
+    </div>
+
+    <div class="card">
+      <h3>How It Works</h3>
+      <p>A tiny camera on the drone captures video. An analog or digital video transmitter broadcasts the feed wirelessly. Your goggles receive the signal and display it on screens inches from your eyes. The entire chain — capture, encode, transmit, decode, display — happens in under 20 milliseconds.</p>
+      <div class="fact-box">
+        <span class="fact-label">Why latency matters</span>
+        <p>At 150 km/h, a drone travels 4 cm per millisecond. Even 50 ms of delay means the drone has moved 2 meters since you saw the last frame. Low latency isn't a nice-to-have — it's the difference between threading a gap and crashing.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Analog vs Digital</h3>
+      <p>Analog video (like old TV) has ultra-low latency (~5 ms) but lower resolution and static/snow at range. Digital systems (DJI, HDZero, Walksnail) provide HD clarity with slightly higher latency (~25-35 ms).</p>
+      <table class="spec-table">
+        <tr><td>Analog</td><td>~5 ms latency, 600 TVL, cheap, proven</td></tr>
+        <tr><td>DJI O3+</td><td>~28 ms, 1080p 100fps, best image</td></tr>
+        <tr><td>HDZero</td><td>~22 ms, 1080p 90fps, open ecosystem</td></tr>
+        <tr><td>Walksnail</td><td>~25 ms, 1080p 100fps, good value</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Who Flies FPV?</h3>
+      <p>FPV attracts a uniquely diverse community — from 14-year-old racing prodigies to retired engineers. The main disciplines:</p>
+      <div class="icon-row"><span class="icon">🏁</span><p><strong>Racing</strong> — organized events, gates, laps, rankings</p></div>
+      <div class="icon-row"><span class="icon">🌀</span><p><strong>Freestyle</strong> — creative aerial acrobatics, flow, and expression</p></div>
+      <div class="icon-row"><span class="icon">🎬</span><p><strong>Cinematic</strong> — professional film and commercial work</p></div>
+      <div class="icon-row"><span class="icon">🏗️</span><p><strong>Exploration</strong> — urban, industrial, and nature exploration</p></div>
+      <div class="icon-row"><span class="icon">🛠️</span><p><strong>Building</strong> — the tinkering and engineering side</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 3D MODEL ═══ -->
+<section id="model3d" class="section">
+  <canvas id="modelCanvas"></canvas>
+  <div id="model-hud">
+    <div id="model-legend">
+      <h3>SpeedyBee Bee35</h3>
+      <div class="legend-item" data-part="frame"><div class="dot" style="background:#4a4a4a"></div><div><div class="lname">Carbon Frame</div><div class="ldesc">3.5" true-X, 3mm arms</div></div></div>
+      <div class="legend-item" data-part="fc"><div class="dot" style="background:#00e5ff"></div><div><div class="lname">Flight Controller</div><div class="ldesc">F405 + BMI270 gyro, 8kHz</div></div></div>
+      <div class="legend-item" data-part="motors"><div class="dot" style="background:#ff3d5a"></div><div><div class="lname">Motors × 4</div><div class="ldesc">1404 4500KV brushless</div></div></div>
+      <div class="legend-item" data-part="props"><div class="dot" style="background:#a0ffa0"></div><div><div class="lname">Propellers × 4</div><div class="ldesc">3.5" tri-blade, 2CW + 2CCW</div></div></div>
+      <div class="legend-item" data-part="camera"><div class="dot" style="background:#ffe03d"></div><div><div class="lname">FPV Camera</div><div class="ldesc">Runcam Nano, 25° tilt</div></div></div>
+      <div class="legend-item" data-part="vtx"><div class="dot" style="background:#ff9800"></div><div><div class="lname">VTX + Antenna</div><div class="ldesc">400mW 5.8GHz, LHCP</div></div></div>
+      <div class="legend-item" data-part="battery"><div class="dot" style="background:#ff3d5a"></div><div><div class="lname">LiPo Battery</div><div class="ldesc">4S 850mAh 75C</div></div></div>
+      <div class="legend-item" data-part="esc"><div class="dot" style="background:#7c4dff"></div><div><div class="lname">4-in-1 ESC</div><div class="ldesc">35A BLHeli_S, DShot600</div></div></div>
+    </div>
+    <div id="model-title">
+      <h2>Bee<span style="color:var(--accent)">35</span></h2>
+      <div class="sub">SpeedyBee · 3.5" Freestyle</div>
+      <div class="model-spec">
+        AUW: ~185g (w/ battery)<br>
+        Frame: 155mm true-X<br>
+        Motors: 1404 4500KV<br>
+        Battery: 4S 850mAh<br>
+        VTX: 400mW 5.8GHz
+      </div>
+    </div>
+    <div id="model-info">Drag to orbit · Scroll to zoom · Click legend to highlight</div>
+  </div>
+</section>
+
+<!-- ═══ COMPONENTS ═══ -->
+<section id="components" class="section">
+  <div class="section-head">
+    <h2>Anatomy of a <span style="color:var(--accent)">Quad</span></h2>
+    <p>Every FPV drone is built from the same core components. Understanding each one is the first step to building your own.</p>
+  </div>
+
+  <div class="telemetry">
+    <div class="telem-item"><div class="telem-val">4</div><div class="telem-label">Motors</div></div>
+    <div class="telem-item"><div class="telem-val">~350</div><div class="telem-label">Grams AUW</div></div>
+    <div class="telem-item"><div class="telem-val">5"</div><div class="telem-label">Prop Size</div></div>
+    <div class="telem-item"><div class="telem-val">6S</div><div class="telem-label">Battery</div></div>
+  </div>
+
+  <div class="content-grid">
+    <div class="card">
+      <h3>Frame</h3>
+      <p>The carbon fiber skeleton. Typical 5" freestyle frames weigh 100-120g with 4-7mm arms. Frame geometry affects flight characteristics — stretched X for speed, true X for symmetry, deadcat for prop-free camera view.</p>
+      <table class="spec-table">
+        <tr><td>Material</td><td>3K carbon fiber, 4-7mm arms</td></tr>
+        <tr><td>Sizes</td><td>3" (toothpick) → 5" (standard) → 7" (long range)</td></tr>
+        <tr><td>Weight</td><td>60-150g depending on size</td></tr>
+        <tr><td>Key Brands</td><td>ImpulseRC, TBS, Armattan, iFlight</td></tr>
+      </table>
+      <div class="tag">Carbon Fiber</div><div class="tag">Structural</div>
+    </div>
+
+    <div class="card">
+      <h3>Flight Controller (FC)</h3>
+      <p>The brain. A 32-bit microcontroller running Betaflight or INAV firmware at 8 kHz loop rates. It reads the gyroscope 8,000 times per second and adjusts all four motors to keep the quad stable and responsive to your stick inputs.</p>
+      <table class="spec-table">
+        <tr><td>Processor</td><td>STM32 F405/F722/H743</td></tr>
+        <tr><td>Gyro</td><td>ICM-42688-P or BMI270</td></tr>
+        <tr><td>PID Loop</td><td>8 kHz (every 125 μs)</td></tr>
+        <tr><td>Firmware</td><td>Betaflight, INAV, ArduPilot</td></tr>
+      </table>
+      <div class="tag">Betaflight</div><div class="tag">PID Control</div><div class="tag">IMU</div>
+    </div>
+
+    <div class="card">
+      <h3>Motors & ESCs</h3>
+      <p>Brushless motors spin at up to 50,000 RPM, producing enough thrust to give a 5" quad an 8:1 thrust-to-weight ratio. ESCs (Electronic Speed Controllers) drive the motors using 48 kHz PWM signals, switching 30+ amps per motor.</p>
+      <table class="spec-table">
+        <tr><td>Motor Size</td><td>2207, 2306, 2806.5 (diameter × height)</td></tr>
+        <tr><td>KV Rating</td><td>1700-1900 KV (for 6S), 2400-2700 KV (4S)</td></tr>
+        <tr><td>ESC Current</td><td>35-55A per motor, BLHeli_32 firmware</td></tr>
+        <tr><td>Protocol</td><td>DShot600 / DShot300</td></tr>
+      </table>
+      <div class="tag red">High Current</div><div class="tag">Brushless</div>
+    </div>
+
+    <div class="card">
+      <h3>Propellers</h3>
+      <p>The interface between motor power and air. Props are defined by diameter, pitch, and blade count. A 5145 prop is 5.1" diameter, 4.5" pitch. Higher pitch = more speed; lower pitch = more efficiency. Tri-blade is the standard for freestyle.</p>
+      <div class="fact-box">
+        <span class="fact-label">Physics</span>
+        <p>Each prop tip reaches Mach 0.3-0.5 at full throttle — that's 370-600 km/h. The distinctive FPV "scream" is the sound of four props approaching transonic speeds.</p>
+      </div>
+      <div class="tag">5" Standard</div><div class="tag">Tri-blade</div>
+    </div>
+
+    <div class="card">
+      <h3>Battery (LiPo)</h3>
+      <p>Lithium polymer packs deliver enormous current — a 6S 1300mAh pack can dump 130+ amps instantaneously. That's over 3 kilowatts of electrical power from a 200g battery. Flight times are typically 3-5 minutes of aggressive flying.</p>
+      <table class="spec-table">
+        <tr><td>Chemistry</td><td>LiPo (3.7V/cell) or Li-Ion (long range)</td></tr>
+        <tr><td>Config</td><td>4S (14.8V) or 6S (22.2V)</td></tr>
+        <tr><td>C Rating</td><td>75-150C burst discharge</td></tr>
+        <tr><td>Capacity</td><td>1100-1800 mAh typical</td></tr>
+      </table>
+      <div class="tag red">LiPo Safety</div><div class="tag yellow">3-5 min flight</div>
+    </div>
+
+    <div class="card">
+      <h3>Video System</h3>
+      <p>The camera captures the pilot's view. Modern FPV cameras use ultra-wide lenses (150°+) and sensors with high dynamic range — they need to handle both dark shadows and bright sky in the same frame while keeping latency minimal.</p>
+      <table class="spec-table">
+        <tr><td>FOV</td><td>150-170° ultra-wide</td></tr>
+        <tr><td>Sensor</td><td>1/1.8" to 1/3" CMOS</td></tr>
+        <tr><td>VTX Power</td><td>25mW - 1W (adjustable)</td></tr>
+        <tr><td>Frequency</td><td>5.8 GHz (analog/digital)</td></tr>
+      </table>
+      <div class="tag">Low Latency</div><div class="tag">5.8 GHz</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ PHYSICS ═══ -->
+<section id="physics" class="section">
+  <div class="section-head">
+    <h2>Flight <span style="color:var(--accent)">Physics</span></h2>
+    <p>Understanding the forces at play helps you fly better and build smarter. An FPV quad is a study in control theory, aerodynamics, and power systems.</p>
+  </div>
+
+  <div class="content-grid">
+    <div class="card" style="grid-column:1/-1">
+      <h3>The Four Forces</h3>
+      <p>A quadcopter generates all its lift from four spinning propellers — there are no wings, no control surfaces. Everything is done by varying motor speeds. Two motors spin clockwise and two counter-clockwise to cancel out torque.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:16px">
+        <div class="fact-box"><span class="fact-label">Throttle (Altitude)</span><p>All four motors speed up or slow down equally. More thrust = climb. Less = descend.</p></div>
+        <div class="fact-box"><span class="fact-label">Roll (Left/Right)</span><p>One side spins faster, tilting the quad. Thrust vector angles sideways → lateral movement.</p></div>
+        <div class="fact-box"><span class="fact-label">Pitch (Fwd/Back)</span><p>Front or rear motors speed up. Quad tilts forward → thrust pushes it ahead.</p></div>
+        <div class="fact-box"><span class="fact-label">Yaw (Rotation)</span><p>CW motors speed up, CCW slow down (or vice versa). Net torque spins the quad on its axis.</p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>PID Control</h3>
+      <p>The flight controller uses a PID loop to keep the quad stable. PID stands for Proportional, Integral, Derivative — three mathematical terms that work together to correct errors:</p>
+      <div class="icon-row"><span class="icon" style="color:var(--accent)">P</span><p><strong>Proportional</strong> — corrects based on current error. Too high = oscillation. Too low = mushy.</p></div>
+      <div class="icon-row"><span class="icon" style="color:var(--accent2)">I</span><p><strong>Integral</strong> — corrects accumulated error over time. Fights drift, especially in wind.</p></div>
+      <div class="icon-row"><span class="icon" style="color:var(--accent3)">D</span><p><strong>Derivative</strong> — dampens rapid changes. Prevents overshoot, adds "locked in" feel.</p></div>
+      <div class="fact-box">
+        <span class="fact-label">The loop</span>
+        <p>This PID calculation runs 8,000 times per second. In each 125-microsecond cycle: read gyro → compute error → calculate P+I+D → send motor commands. It's one of the fastest real-time control loops in any consumer device.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Power & Thrust</h3>
+      <p>A well-built 5" quad produces about 7-8 kg of thrust from a machine weighing under 400g. This gives it acceleration capabilities that embarrass most vehicles:</p>
+      <table class="spec-table">
+        <tr><td>0 → 100 km/h</td><td>~1 second</td></tr>
+        <tr><td>Max Acceleration</td><td>~8G (78 m/s²)</td></tr>
+        <tr><td>Power Output</td><td>~3,000 watts peak</td></tr>
+        <tr><td>Efficiency</td><td>~5 g/W hover, ~2.5 g/W sprint</td></tr>
+      </table>
+      <div class="fact-box">
+        <span class="fact-label">Perspective</span>
+        <p>A 5" FPV quad has a higher power-to-weight ratio than an F-22 Raptor. It can sustain accelerations that would black out a fighter pilot. The limiting factor isn't the machine — it's human reaction time.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Aerodynamics</h3>
+      <p>At the prop level, FPV quads operate in a regime of complex aerodynamics:</p>
+      <div class="icon-row"><span class="icon">🌪️</span><p><strong>Prop wash</strong> — flying through your own disturbed air causes instability. PID tuning fights this.</p></div>
+      <div class="icon-row"><span class="icon">💨</span><p><strong>Ground effect</strong> — thrust increases near surfaces as air cushions beneath the props.</p></div>
+      <div class="icon-row"><span class="icon">📐</span><p><strong>Angle of attack</strong> — tilting the quad trades vertical lift for horizontal speed. At 45°, you're splitting thrust 50/50.</p></div>
+      <div class="icon-row"><span class="icon">🔊</span><p><strong>Transonic tips</strong> — prop tips approach Mach 0.5, creating shockwaves and the signature FPV scream.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FREESTYLE ═══ -->
+<section id="freestyle" class="section">
+  <div class="section-head">
+    <h2>Freestyle <span style="color:var(--accent2)">Tricks</span></h2>
+    <p>Freestyle is the creative heart of FPV — combining aerial maneuvers into flowing, expressive sequences. Here are the fundamental moves.</p>
+  </div>
+
+  <div class="content-grid">
+    <div class="card mode-card acro">
+      <h3>Rolls & Flips</h3>
+      <p>The foundation. Full 360° rotation on the roll axis (aileron roll) or pitch axis (front flip / back flip). Clean rolls require consistent throttle management — cut throttle at the top, add at the bottom to maintain altitude.</p>
+      <div class="tag red">Beginner</div><div class="tag">Acro Mode Required</div>
+    </div>
+
+    <div class="card mode-card acro">
+      <h3>Power Loop</h3>
+      <p>Approach a structure low, pull back hard to do a backward loop over it, then dive back down the other side. The signature move of FPV freestyle — combines speed, proximity, and a full vertical loop around an object.</p>
+      <div class="tag red">Intermediate</div><div class="tag">Proximity</div>
+    </div>
+
+    <div class="card mode-card acro">
+      <h3>Split-S</h3>
+      <p>Flying forward, roll inverted (180° roll), then pull back into a half loop to reverse direction while descending. Borrowed from WW2 fighter tactics. It's an efficient way to change direction while losing altitude — perfect for diving through gaps.</p>
+      <div class="tag red">Intermediate</div>
+    </div>
+
+    <div class="card mode-card acro">
+      <h3>Matty Flip (Juicy Flick)</h3>
+      <p>Roll inverted, then yaw and pitch simultaneously to create a twisting, flipping motion while traveling backwards. Named after pilot Mattystuntz. One of the most visually dynamic maneuvers — the camera rotates through multiple axes creating a disorienting, beautiful sequence.</p>
+      <div class="tag red">Advanced</div><div class="tag">Multi-axis</div>
+    </div>
+
+    <div class="card mode-card acro">
+      <h3>Rubik's Cube</h3>
+      <p>Simultaneous roll, pitch, and yaw inputs creating a tumbling rotation through all three axes. Named for the way the drone seems to twist like a Rubik's cube being solved. Requires precise stick coordination and throttle control.</p>
+      <div class="tag red">Advanced</div><div class="tag">3-Axis</div>
+    </div>
+
+    <div class="card mode-card acro">
+      <h3>Orbit</h3>
+      <p>Circling an object while keeping the camera pointed at it. Combine yaw, roll, and pitch to trace a smooth circle. Cinematic pilots use orbits constantly. Tight orbits around trees or poles at speed are a freestyle staple.</p>
+      <div class="tag">Cinematic</div><div class="tag">Foundational</div>
+    </div>
+  </div>
+
+  <div style="max-width:700px;margin:48px auto 0">
+    <div class="fact-box">
+      <span class="fact-label">The Flow State</span>
+      <p>Advanced freestyle isn't about individual tricks — it's about linking them into a continuous, improvised flow through a space. The best pilots describe it as a meditative state where conscious thought gives way to instinct and muscle memory. The drone becomes an extension of the body.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ START FLYING ═══ -->
+<section id="start" class="section">
+  <div class="section-head">
+    <h2>Start <span style="color:var(--accent3)">Flying</span></h2>
+    <p>The path from zero to flying freestyle. Follow this roadmap and you'll be in the air within weeks.</p>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-item" style="animation-delay:.1s">
+      <h4>Step 1 — Get a Simulator</h4>
+      <p>Before buying any hardware, buy a radio transmitter (~$60-100) and plug it into a PC simulator. Liftoff, Velocidrone, and Uncrashed are the top picks. Spend at least 10-20 hours in the sim before flying a real quad. This will save you hundreds in crash repairs.</p>
+    </div>
+    <div class="timeline-item" style="animation-delay:.2s">
+      <h4>Step 2 — Learn Acro Mode</h4>
+      <p>Start in acro (rate) mode from day one. It's harder at first, but it's the only mode that allows full creative control. Self-level / angle mode creates bad habits that are hard to unlearn. Hover first. Then forward flight. Then gentle turns.</p>
+    </div>
+    <div class="timeline-item" style="animation-delay:.3s">
+      <h4>Step 3 — Choose Your First Quad</h4>
+      <p>Options: a ready-to-fly kit (BetaFPV Cetus Pro for indoors, iFlight Nazgul V2 for outdoors) or build your own. Building teaches you how to repair — and you will need to repair. Budget $300-600 for a complete setup including goggles and radio.</p>
+    </div>
+    <div class="timeline-item" style="animation-delay:.4s">
+      <h4>Step 4 — Find a Safe Space</h4>
+      <p>Start in a large open field away from people, cars, and buildings. Check local regulations — many countries require registration for drones over 250g. Join a local FPV group; experienced pilots are usually happy to help beginners.</p>
+    </div>
+    <div class="timeline-item" style="animation-delay:.5s">
+      <h4>Step 5 — First Flights</h4>
+      <p>Keep it low and slow. Practice hovering at eye level, flying figure-8 patterns, and controlled landing. Crashes are normal and expected — that's why we fly over grass first. Always do a pre-flight check: props tight, battery secure, failsafe configured.</p>
+    </div>
+    <div class="timeline-item" style="animation-delay:.6s">
+      <h4>Step 6 — Progress to Freestyle</h4>
+      <p>Once you're comfortable with controlled flight, start with rolls and flips at altitude (safe crash distance). Then power loops around trees. Then proximity. The learning curve is steep but incredibly rewarding. Film everything — watching back your flights accelerates improvement.</p>
+    </div>
+  </div>
+
+  <div style="max-width:700px;margin:32px auto 0">
+    <div class="fact-box warn">
+      <span class="fact-label">Safety First</span>
+      <p>FPV drones are not toys. Spinning carbon fiber props at 30,000+ RPM can cause serious injury. Always fly with a spotter. Never fly over people. Use a LiPo-safe bag for charging. Respect local regulations and fly responsibly — the community's ability to fly depends on every pilot's behavior.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+var activeMode = 'hero';
+// ═══ WEBGL BACKGROUND — particle flight trails ═══
+const canvas = document.getElementById('bgCanvas');
+const gl = canvas.getContext('webgl', { alpha:true, antialias:false });
+
+const vertSrc = `
+attribute vec2 a_pos;
+void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }`;
+
+const fragSrc = `
+precision highp float;
+uniform vec2 u_res;
+uniform float u_time;
+uniform float u_scroll;
+
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+
+float noise(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  f = f*f*(3.0-2.0*f);
+  return mix(mix(hash(i), hash(i+vec2(1,0)), f.x),
+             mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), f.x), f.y);
+}
+
+float fbm(vec2 p) {
+  float v = 0.0, a = 0.5;
+  mat2 rot = mat2(0.8, 0.6, -0.6, 0.8);
+  for(int i = 0; i < 5; i++) {
+    v += a * noise(p);
+    p = rot * p * 2.0;
+    a *= 0.5;
+  }
+  return v;
+}
+
+void main() {
+  vec2 uv = gl_FragCoord.xy / u_res;
+  float t = u_time * 0.3;
+
+  // Flowing noise field — simulates aerial movement
+  vec2 q = uv * 3.0 + vec2(t * 0.5, u_scroll * 0.002);
+  float f = fbm(q);
+  float f2 = fbm(q + vec2(f * 0.4, t * 0.2));
+
+  // Flight trails — streaks of light
+  float trails = 0.0;
+  for(int i = 0; i < 4; i++) {
+    float fi = float(i);
+    vec2 tp = uv;
+    tp.x += sin(t * (0.3 + fi * 0.1) + fi * 1.5) * 0.3;
+    tp.y += cos(t * (0.2 + fi * 0.15) + fi * 2.0) * 0.2;
+    float trail = exp(-40.0 * abs(tp.y - 0.5 + f2 * 0.3 - fi * 0.15));
+    trail *= smoothstep(0.0, 0.3, tp.x) * smoothstep(1.0, 0.7, tp.x);
+    trails += trail * (0.3 - fi * 0.05);
+  }
+
+  // Base atmosphere
+  vec3 col = vec3(0.02, 0.03, 0.05);
+
+  // Noise-based nebula
+  col += vec3(0.0, 0.05, 0.08) * f2;
+  col += vec3(0.0, 0.02, 0.04) * f;
+
+  // Trails in accent color
+  col += vec3(0.0, 0.6, 0.8) * trails * 0.15;
+  col += vec3(1.0, 0.2, 0.3) * trails * 0.03;
+
+  // Subtle grid
+  vec2 grid = abs(fract(uv * 30.0 + vec2(t * 0.1, u_scroll * 0.001)) - 0.5);
+  float g = smoothstep(0.48, 0.5, max(grid.x, grid.y));
+  col += vec3(0.03, 0.06, 0.08) * g * 0.15;
+
+  // Vignette
+  float vig = 1.0 - 0.4 * length(uv - 0.5);
+  col *= vig;
+
+  gl_FragColor = vec4(col, 1.0);
+}`;
+
+function compileShader(type, src) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) console.error(gl.getShaderInfoLog(s));
+  return s;
+}
+
+const prog = gl.createProgram();
+gl.attachShader(prog, compileShader(gl.VERTEX_SHADER, vertSrc));
+gl.attachShader(prog, compileShader(gl.FRAGMENT_SHADER, fragSrc));
+gl.linkProgram(prog);
+gl.useProgram(prog);
+
+const buf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+const aPos = gl.getAttribLocation(prog, 'a_pos');
+gl.enableVertexAttribArray(aPos);
+gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+const uRes = gl.getUniformLocation(prog, 'u_res');
+const uTime = gl.getUniformLocation(prog, 'u_time');
+const uScroll = gl.getUniformLocation(prog, 'u_scroll');
+
+let scrollY = 0;
+
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio, 1.5);
+  canvas.width = window.innerWidth * dpr;
+  canvas.height = window.innerHeight * dpr;
+  canvas.style.width = window.innerWidth + 'px';
+  canvas.style.height = window.innerHeight + 'px';
+  gl.viewport(0, 0, canvas.width, canvas.height);
+}
+window.addEventListener('resize', resize);
+resize();
+
+function renderBG(now) {
+  gl.uniform2f(uRes, canvas.width, canvas.height);
+  gl.uniform1f(uTime, now * 0.001);
+  gl.uniform1f(uScroll, scrollY);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  requestAnimationFrame(renderBG);
+}
+requestAnimationFrame(renderBG);
+
+// ═══ TAB NAVIGATION ═══
+document.querySelectorAll('#mainNav a').forEach(link => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.querySelectorAll('#mainNav a').forEach(a => a.classList.remove('active'));
+    link.classList.add('active');
+    const tab = link.dataset.tab;
+    activeMode = tab;
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(tab).classList.add('active');
+    window.scrollTo(0, 0);
+    // Model HUD
+    const mhud = document.getElementById('model-hud');
+    if (mhud) mhud.style.display = tab === 'model3d' ? 'block' : 'none';
+    if (tab === 'model3d') {
+      buildModel();
+      if (rend3d) {
+        rend3d.setSize(window.innerWidth, window.innerHeight);
+        cam3d.aspect = window.innerWidth / window.innerHeight;
+        cam3d.updateProjectionMatrix();
+      }
+    }
+  });
+});
+
+// ═══ STAGGER CARD ANIMATIONS ═══
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      entry.target.style.animationDelay = (i * 0.08) + 's';
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.card, .timeline-item').forEach(el => observer.observe(el));
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ═══ SpeedyBee Bee35 — Ultra-Realistic Ducted Cinewhoop ═══
+var scene3d,cam3d,rend3d,drone,propSpin=[],ledArr=[],ledLights=[];
+var modelReady=false,dragging=false,prevX=0,prevY=0;
+var theta=0.5,phi=0.25,dist=2.2;
+var target=null;
+var hiPart=null,parts={};
+var spinning=true,idleTime=0;
+var envMap=null;
+
+function mat(c,m,r,extra){
+  var o={color:c,metalness:m!==undefined?m:0.5,roughness:r!==undefined?r:0.5};
+  if(extra){for(var k in extra)o[k]=extra[k];}
+  var material=new THREE.MeshStandardMaterial(o);
+  if(envMap) material.envMap=envMap;
+  return material;
+}
+
+// Create procedural environment cubemap for realistic reflections
+function createEnvMap(){
+  var size=128;
+  var cubeRT=new THREE.WebGLCubeRenderTarget(size,{
+    format:THREE.RGBFormat,generateMipmaps:true,minFilter:THREE.LinearMipmapLinearFilter
+  });
+  var cubeScene=new THREE.Scene();
+  // Gradient sky sphere
+  var skyGeo=new THREE.SphereGeometry(50,32,16);
+  var skyVert=`varying vec3 vWorldPosition;
+  void main(){
+    vec4 wp=modelMatrix*vec4(position,1.0);
+    vWorldPosition=wp.xyz;
+    gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
+  }`;
+  var skyFrag=`varying vec3 vWorldPosition;
+  void main(){
+    vec3 dir=normalize(vWorldPosition);
+    float h=dir.y*0.5+0.5;
+    vec3 top=vec3(0.08,0.12,0.22);
+    vec3 mid=vec3(0.04,0.06,0.12);
+    vec3 bot=vec3(0.02,0.03,0.06);
+    vec3 col=mix(bot,mid,smoothstep(0.0,0.3,h));
+    col=mix(col,top,smoothstep(0.3,0.8,h));
+    // Warm horizon glow
+    float horizonGlow=exp(-8.0*abs(dir.y))*0.3;
+    col+=vec3(0.2,0.12,0.06)*horizonGlow;
+    // Subtle cool highlights at top
+    col+=vec3(0.02,0.04,0.08)*smoothstep(0.6,1.0,h);
+    gl_FragColor=vec4(col,1.0);
+  }`;
+  var skyMat=new THREE.ShaderMaterial({vertexShader:skyVert,fragmentShader:skyFrag,side:THREE.BackSide});
+  cubeScene.add(new THREE.Mesh(skyGeo,skyMat));
+  // Add some accent light spots for reflection variety
+  var spotGeo=new THREE.SphereGeometry(2,8,4);
+  var spotMat1=new THREE.MeshBasicMaterial({color:0x00aaff});
+  var spot1=new THREE.Mesh(spotGeo,spotMat1);
+  spot1.position.set(15,10,8);
+  cubeScene.add(spot1);
+  var spotMat2=new THREE.MeshBasicMaterial({color:0xff6633});
+  var spot2=new THREE.Mesh(spotGeo,spotMat2);
+  spot2.position.set(-12,6,-10);
+  cubeScene.add(spot2);
+  var spotMat3=new THREE.MeshBasicMaterial({color:0xffffff});
+  var spot3=new THREE.Mesh(spotGeo,spotMat3);
+  spot3.position.set(0,20,0);
+  cubeScene.add(spot3);
+
+  var cubeCam=new THREE.CubeCamera(0.1,100,cubeRT);
+  cubeCam.update(rend3d,cubeScene);
+  return cubeRT.texture;
+}
+
+// Rounded box helper
+function roundedBoxGeo(w,h,d,r,seg){
+  var shape=new THREE.Shape();
+  var hw=w/2,hh=h/2;
+  r=Math.min(r,hw,hh);
+  shape.moveTo(-hw+r,-hh);
+  shape.lineTo(hw-r,-hh);
+  shape.quadraticCurveTo(hw,-hh,hw,-hh+r);
+  shape.lineTo(hw,hh-r);
+  shape.quadraticCurveTo(hw,hh,hw-r,hh);
+  shape.lineTo(-hw+r,hh);
+  shape.quadraticCurveTo(-hw,hh,-hw,hh-r);
+  shape.lineTo(-hw,-hh+r);
+  shape.quadraticCurveTo(-hw,-hh,-hw+r,-hh);
+  var extSettings={depth:d,bevelEnabled:false};
+  var geo=new THREE.ExtrudeGeometry(shape,extSettings);
+  geo.translate(0,0,-d/2);
+  return geo;
+}
+
+function buildModel(){
+  if(modelReady)return;
+  modelReady=true;
+
+  var cv=document.getElementById('modelCanvas');
+  if(!cv)return;
+
+  scene3d=new THREE.Scene();
+  scene3d.background=new THREE.Color(0x080b12);
+  scene3d.fog=new THREE.FogExp2(0x080b12,0.025);
+  target=new THREE.Vector3(0,0.08,0);
+
+  rend3d=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'});
+  rend3d.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  rend3d.setSize(window.innerWidth,window.innerHeight);
+  rend3d.shadowMap.enabled=true;
+  rend3d.shadowMap.type=THREE.PCFSoftShadowMap;
+  rend3d.toneMapping=THREE.ACESFilmicToneMapping;
+  rend3d.toneMappingExposure=1.35;
+  rend3d.outputEncoding=THREE.sRGBEncoding;
+  rend3d.physicallyCorrectLights=true;
+
+  cam3d=new THREE.PerspectiveCamera(34,window.innerWidth/window.innerHeight,0.01,80);
+
+  // Create environment map first
+  envMap=createEnvMap();
+  scene3d.environment=envMap;
+
+  // ═══ CINEMATIC LIGHTING ═══
+  // Hemisphere for ambient fill
+  var hemiL=new THREE.HemisphereLight(0x556688,0x111118,0.6);
+  scene3d.add(hemiL);
+
+  // Key light — warm, strong, with shadows
+  var keyL=new THREE.DirectionalLight(0xfff0dd,4.0);
+  keyL.position.set(2.5,5,3.5);
+  keyL.castShadow=true;
+  keyL.shadow.mapSize.set(4096,4096);
+  keyL.shadow.bias=-0.00015;
+  keyL.shadow.normalBias=0.02;
+  keyL.shadow.radius=4;
+  var sc=keyL.shadow.camera;
+  sc.near=0.5;sc.far=15;sc.left=-3;sc.right=3;sc.top=3;sc.bottom=-3;
+  scene3d.add(keyL);
+
+  // Fill light — cool, softer
+  var fillL=new THREE.DirectionalLight(0x88aadd,1.8);
+  fillL.position.set(-3.5,3,-2.5);
+  scene3d.add(fillL);
+
+  // Rim/back light — warm accent
+  var rimL=new THREE.DirectionalLight(0xffaa66,1.2);
+  rimL.position.set(0,2,-4);
+  scene3d.add(rimL);
+
+  // Top light for catching specular highlights
+  var topL=new THREE.PointLight(0xffffff,0.8,10);
+  topL.position.set(0,5,0);
+  scene3d.add(topL);
+
+  // Low accent light (cyan, from front-below) for cinematic drama
+  var accentL=new THREE.PointLight(0x00ccff,0.4,6);
+  accentL.position.set(0,-0.5,2);
+  scene3d.add(accentL);
+
+  // ═══ GROUND — reflective dark surface ═══
+  var gndMat=new THREE.MeshStandardMaterial({
+    color:0x0a0d14,metalness:0.95,roughness:0.08,envMap:envMap,envMapIntensity:0.8
+  });
+  var gnd=new THREE.Mesh(new THREE.PlaneGeometry(30,30),gndMat);
+  gnd.rotation.x=-Math.PI/2;
+  gnd.position.y=-0.35;
+  gnd.receiveShadow=true;
+  scene3d.add(gnd);
+
+  // Subtle concentric rings on ground
+  for(var gr=0;gr<5;gr++){
+    var ringR=1.5+gr*1.8;
+    var ringGeo=new THREE.RingGeometry(ringR-0.005,ringR+0.005,80);
+    var ringMat=new THREE.MeshBasicMaterial({color:0x112233,transparent:true,opacity:0.15-gr*0.02});
+    var ring=new THREE.Mesh(ringGeo,ringMat);
+    ring.rotation.x=-Math.PI/2;
+    ring.position.y=-0.348;
+    scene3d.add(ring);
+  }
+
+  var grid=new THREE.GridHelper(30,120,0x141a28,0x0c1118);
+  grid.position.y=-0.349;
+  grid.material.transparent=true;
+  grid.material.opacity=0.4;
+  scene3d.add(grid);
+
+  // ═══ PBR MATERIALS ═══
+  var carbon=mat(0x0e0e0e,0.25,0.32);
+  var carbonPol=mat(0x161616,0.4,0.15); // Polished carbon
+  var carbonWeave=mat(0x111111,0.3,0.25); // Shows texture
+  var ductPlastic=mat(0x0f0f0f,0.08,0.55);
+  var alum=mat(0xcccccc,0.95,0.06);
+  var alumAn=mat(0x808080,0.9,0.12); // Anodized aluminum
+  var alumBrushed=mat(0x999999,0.88,0.2);
+  var bellGray=mat(0x555555,0.85,0.1);
+  var copperW=mat(0xcc8844,0.82,0.22);
+  var fcGreen=mat(0x004400,0.2,0.6,{emissive:0x001100,emissiveIntensity:0.08});
+  var escDarkPCB=mat(0x0a0a0a,0.15,0.6);
+  var propMat=mat(0x151515,0.04,0.65,{side:THREE.DoubleSide});
+  var propMatTrans=mat(0x181818,0.04,0.55,{side:THREE.DoubleSide,transparent:true,opacity:0.9});
+  var camYellow=mat(0xddaa00,0.35,0.2);
+  var camBlack=mat(0x080808,0.25,0.45);
+  var lensGls=mat(0x020208,0.98,0.02,{transparent:true,opacity:0.75});
+  var lensCoat=mat(0x112244,0.95,0.05,{transparent:true,opacity:0.4}); // lens coating reflection
+  var batBlue=mat(0x1a44aa,0.08,0.55);
+  var batWrap=mat(0x1133aa,0.05,0.7); // Battery heatshrink
+  var vtxDark=mat(0x111111,0.2,0.5);
+  var antDark=mat(0x1a1a1a,0.15,0.6);
+  var goldM=mat(0xddbb44,0.9,0.08);
+  var chipM=mat(0x0c0c0c,0.45,0.35);
+  var chipQFP=mat(0x222222,0.6,0.2); // IC package
+  var rubberM=mat(0x0e0e0e,0.01,0.97);
+  var whiteM=mat(0xeeeeee,0.04,0.85);
+  var siliconeR=mat(0xcc2222,0.06,0.7);
+  var siliconeB=mat(0x2222cc,0.06,0.7);
+  var siliconeY=mat(0xcccc22,0.06,0.7);
+  var siliconeK=mat(0x1a1a1a,0.06,0.7);
+  var solderM=mat(0xaaaaaa,0.7,0.3);
+  var tinPad=mat(0x888888,0.8,0.15);
+  var confCoat=mat(0x222200,0.1,0.4,{transparent:true,opacity:0.3}); // conformal coating
+
+  drone=new THREE.Group();
+  scene3d.add(drone);
+
+  // Motor positions — 155mm wheelbase
+  var md=0.48;
+  var MP=[
+    {x:md,z:md,cw:true},
+    {x:-md,z:md,cw:false},
+    {x:md,z:-md,cw:false},
+    {x:-md,z:-md,cw:true}
+  ];
+  var ductR=0.21;
+
+  // ══════ FRAME — X-shaped carbon fiber ══════
+  var frameG=new THREE.Group();
+  parts.frame=frameG;
+
+  // Arms with beveled edges (more realistic than flat boxes)
+  var armLen=1.22,armW=0.065,armH=0.022;
+  [-1,1].forEach(function(dir){
+    // Main arm body
+    var arm=new THREE.Mesh(new THREE.BoxGeometry(armLen,armH,armW),carbon);
+    arm.rotation.y=dir*Math.PI/4;
+    arm.castShadow=true;
+    frameG.add(arm);
+    // Top bevel strip (simulates chamfered edge catch-light)
+    var bevel=new THREE.Mesh(new THREE.BoxGeometry(armLen-0.02,0.002,armW+0.003),carbonPol);
+    bevel.rotation.y=dir*Math.PI/4;
+    bevel.position.y=armH/2+0.001;
+    frameG.add(bevel);
+  });
+
+  // Center plate — thicker reinforced area with mounting holes
+  var centerGeo=roundedBoxGeo(0.24,0.24,0.028,0.02,2);
+  var center=new THREE.Mesh(centerGeo,carbonPol);
+  center.rotation.x=Math.PI/2;
+  center.position.y=0.002;
+  center.castShadow=true;
+  frameG.add(center);
+
+  // Mounting holes in center plate
+  [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(function(s){
+    var hole=new THREE.Mesh(new THREE.CylinderGeometry(0.009,0.009,0.03,12),new THREE.MeshStandardMaterial({color:0x050505,metalness:0,roughness:1}));
+    hole.position.set(s[0]*0.09,0.002,s[1]*0.09);
+    frameG.add(hole);
+  });
+
+  // Small top plate over the electronics stack
+  var topPGeo=roundedBoxGeo(0.22,0.20,0.016,0.015,2);
+  var topP=new THREE.Mesh(topPGeo,carbonPol);
+  topP.rotation.x=Math.PI/2;
+  topP.position.y=0.084;
+  topP.castShadow=true;
+  frameG.add(topP);
+
+  // Standoffs (hex)
+  var soP=[[1,1],[1,-1],[-1,1],[-1,-1]];
+  soP.forEach(function(s){
+    var so=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,0.058,6),alumBrushed);
+    so.position.set(s[0]*0.072,0.042,s[1]*0.068);
+    so.castShadow=true;
+    frameG.add(so);
+    // Tiny hex screw heads top & bottom
+    var screw=new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.004,6),alumAn);
+    screw.position.set(s[0]*0.072,0.073,s[1]*0.068);
+    frameG.add(screw);
+    var screwB=new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.004,6),alumAn);
+    screwB.position.set(s[0]*0.072,0.012,s[1]*0.068);
+    frameG.add(screwB);
+  });
+
+  // Camera mount side plates — angled uprights
+  [-1,1].forEach(function(s){
+    var pl=new THREE.Mesh(new THREE.BoxGeometry(0.016,0.065,0.048),carbon);
+    pl.position.set(s*0.088,0.028,0.185);
+    pl.castShadow=true;
+    frameG.add(pl);
+  });
+  // Camera top bar
+  frameG.add(new THREE.Mesh(new THREE.BoxGeometry(0.195,0.012,0.016),carbon).translateY(0.058).translateZ(0.20));
+
+  // ══════ PROP GUARD DUCTS (realistic) ══════
+  MP.forEach(function(mp){
+    // Main cylindrical duct wall — thicker, with inner lip
+    var wallGeo=new THREE.CylinderGeometry(ductR+0.018,ductR+0.016,0.055,48,1,true);
+    var wall=new THREE.Mesh(wallGeo,ductPlastic);
+    wall.position.set(mp.x,0.018,mp.z);
+    wall.castShadow=true;
+    frameG.add(wall);
+
+    // Inner wall (slightly smaller, creates thickness appearance)
+    var innerWall=new THREE.Mesh(
+      new THREE.CylinderGeometry(ductR+0.008,ductR+0.006,0.054,48,1,true),
+      mat(0x0d0d0d,0.05,0.7)
+    );
+    innerWall.position.set(mp.x,0.018,mp.z);
+    frameG.add(innerWall);
+
+    // Top lip ring (rounded torus)
+    var topRing=new THREE.Mesh(new THREE.TorusGeometry(ductR+0.014,0.009,8,48),ductPlastic);
+    topRing.position.set(mp.x,0.045,mp.z);
+    topRing.rotation.x=Math.PI/2;
+    topRing.castShadow=true;
+    frameG.add(topRing);
+
+    // Bottom lip ring
+    var botRing=new THREE.Mesh(new THREE.TorusGeometry(ductR+0.014,0.009,8,48),ductPlastic);
+    botRing.position.set(mp.x,-0.008,mp.z);
+    botRing.rotation.x=Math.PI/2;
+    frameG.add(botRing);
+
+    // Structural support ribs inside duct (4 per duct, like real cinewhoops)
+    for(var rib=0;rib<4;rib++){
+      var ribAngle=rib*Math.PI/2+Math.PI/4;
+      var ribMesh=new THREE.Mesh(new THREE.BoxGeometry(ductR*2+0.02,0.008,0.012),carbon);
+      ribMesh.position.set(mp.x,0.002,mp.z);
+      ribMesh.rotation.y=ribAngle;
+      frameG.add(ribMesh);
+    }
+
+    // Motor mount cross inside duct
+    var cross1=new THREE.Mesh(new THREE.BoxGeometry(ductR*1.9,0.014,0.028),carbon);
+    cross1.position.set(mp.x,0.001,mp.z);
+    cross1.rotation.y=Math.atan2(mp.x,mp.z);
+    cross1.castShadow=true;
+    frameG.add(cross1);
+
+    // Perpendicular cross
+    var cross2=new THREE.Mesh(new THREE.BoxGeometry(ductR*1.4,0.014,0.022),carbon);
+    cross2.position.set(mp.x,0.001,mp.z);
+    cross2.rotation.y=Math.atan2(mp.x,mp.z)+Math.PI/2;
+    frameG.add(cross2);
+  });
+
+  drone.add(frameG);
+
+  // ══════ LED STRIPS around duct bottoms (with point lights!) ══════
+  MP.forEach(function(mp,mi){
+    var n=48;
+    for(var i=0;i<n;i++){
+      var a=i/n*Math.PI*2;
+      var hue=(i/n+mi*0.25)%1.0;
+      var col=new THREE.Color();
+      col.setHSL(hue,1.0,0.5);
+      var ledM=new THREE.MeshStandardMaterial({
+        color:col,emissive:col,emissiveIntensity:1.2,
+        metalness:0.05,roughness:0.4
+      });
+      var led=new THREE.Mesh(new THREE.BoxGeometry(0.008,0.005,0.005),ledM);
+      var lx=mp.x+Math.cos(a)*(ductR+0.019);
+      var lz=mp.z+Math.sin(a)*(ductR+0.019);
+      led.position.set(lx,-0.005,lz);
+      led.rotation.y=-a;
+      led.userData.li=i;
+      led.userData.mi=mi;
+      led.userData.n=n;
+      ledArr.push(led);
+      drone.add(led);
+    }
+    // Per-motor point light for LED glow
+    var pl=new THREE.PointLight(0xff0000,0.3,0.5);
+    pl.position.set(mp.x,-0.02,mp.z);
+    ledLights.push(pl);
+    drone.add(pl);
+  });
+
+  // ══════ ESC — detailed 4-in-1 board ══════
+  var escG=new THREE.Group();
+  parts.esc=escG;
+  // PCB with rounded corners
+  var escPCBGeo=roundedBoxGeo(0.20,0.20,0.016,0.01,2);
+  var escPCB=new THREE.Mesh(escPCBGeo,escDarkPCB);
+  escPCB.rotation.x=Math.PI/2;
+  escPCB.position.y=0.018;
+  escG.add(escPCB);
+  // Copper traces (PCB traces visible)
+  for(var tr=0;tr<6;tr++){
+    var traceA=tr*Math.PI/3+0.2;
+    var traceMesh=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.001,0.003),tinPad);
+    traceMesh.position.set(Math.cos(traceA)*0.05,0.027,Math.sin(traceA)*0.05);
+    traceMesh.rotation.y=traceA;
+    escG.add(traceMesh);
+  }
+  // MOSFETs (8 around the board)
+  for(var i=0;i<8;i++){
+    var a=i*Math.PI/4+Math.PI/8;
+    var f=new THREE.Mesh(new THREE.BoxGeometry(0.03,0.012,0.018),chipM);
+    f.position.set(Math.cos(a)*0.068,0.028,Math.sin(a)*0.068);
+    f.rotation.y=-a;
+    f.castShadow=true;
+    escG.add(f);
+    // Solder pads under MOSFETs
+    var pad=new THREE.Mesh(new THREE.BoxGeometry(0.032,0.001,0.02),tinPad);
+    pad.position.set(Math.cos(a)*0.068,0.026,Math.sin(a)*0.068);
+    pad.rotation.y=-a;
+    escG.add(pad);
+  }
+  // Capacitors (2 larger electrolytics)
+  [-1,1].forEach(function(s){
+    var cap=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,0.02,10),mat(0x222222,0.3,0.5));
+    cap.position.set(s*0.06,0.032,0);
+    escG.add(cap);
+    // Silver top marking
+    var capTop=new THREE.Mesh(new THREE.CylinderGeometry(0.011,0.011,0.002,10),alumBrushed);
+    capTop.position.set(s*0.06,0.043,0);
+    escG.add(capTop);
+  });
+  // Current shunt resistors
+  for(var sr=0;sr<4;sr++){
+    var sra=sr*Math.PI/2+Math.PI/4;
+    escG.add(new THREE.Mesh(new THREE.BoxGeometry(0.015,0.004,0.008),mat(0x050505,0.6,0.2))
+      .translateX(Math.cos(sra)*0.085).translateY(0.028).translateZ(Math.sin(sra)*0.085));
+  }
+  // Conformal coating sheen
+  var escCoat=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.001,0.18),confCoat);
+  escCoat.position.y=0.029;
+  escG.add(escCoat);
+  drone.add(escG);
+
+  // ══════ FC — detailed flight controller ══════
+  var fcG=new THREE.Group();
+  parts.fc=fcG;
+  // PCB (slightly green-tinted like real PCBs, rounded)
+  var fcPCBGeo=roundedBoxGeo(0.20,0.20,0.016,0.01,2);
+  var fcPCB=new THREE.Mesh(fcPCBGeo,fcGreen);
+  fcPCB.rotation.x=Math.PI/2;
+  fcPCB.position.y=0.052;
+  fcG.add(fcPCB);
+  // Copper ground plane visible
+  var gndPlane=new THREE.Mesh(new THREE.BoxGeometry(0.17,0.001,0.17),mat(0x886633,0.7,0.3,{transparent:true,opacity:0.15}));
+  gndPlane.position.y=0.061;
+  fcG.add(gndPlane);
+  // Gyro (BMI270 — QFN package)
+  var gyro=new THREE.Mesh(new THREE.BoxGeometry(0.018,0.005,0.018),chipQFP);
+  gyro.position.y=0.063;
+  fcG.add(gyro);
+  // Gyro marking dot
+  fcG.add(new THREE.Mesh(new THREE.CylinderGeometry(0.002,0.002,0.001,6),whiteM).translateY(0.066).translateX(-0.005).translateZ(-0.005));
+  // Main MCU (STM32 F405 — LQFP100)
+  var mcu=new THREE.Mesh(new THREE.BoxGeometry(0.028,0.005,0.028),chipQFP);
+  mcu.position.set(-0.04,0.063,0.04);
+  fcG.add(mcu);
+  // MCU leads (tiny legs around package)
+  for(var side=0;side<4;side++){
+    for(var pin=0;pin<8;pin++){
+      var pinMesh=new THREE.Mesh(new THREE.BoxGeometry(0.003,0.001,0.001),tinPad);
+      var px,pz;
+      if(side===0){px=-0.04-0.016;pz=0.04-0.012+pin*0.003;}
+      else if(side===1){px=-0.04+0.016;pz=0.04-0.012+pin*0.003;}
+      else if(side===2){px=-0.04-0.012+pin*0.003;pz=0.04-0.016;}
+      else{px=-0.04-0.012+pin*0.003;pz=0.04+0.016;}
+      pinMesh.position.set(px,0.061,pz);
+      if(side>=2)pinMesh.rotation.y=Math.PI/2;
+      fcG.add(pinMesh);
+    }
+  }
+  // OSD chip
+  fcG.add(new THREE.Mesh(new THREE.BoxGeometry(0.014,0.004,0.014),chipM).translateX(0.04).translateY(0.063).translateZ(-0.03));
+  // Flash chip
+  fcG.add(new THREE.Mesh(new THREE.BoxGeometry(0.012,0.003,0.008),chipM).translateX(0.05).translateY(0.063).translateZ(0.04));
+  // USB-C port (more detailed)
+  var usbBody=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.015,0.02),alumAn);
+  usbBody.position.set(0.12,0.052,0);
+  fcG.add(usbBody);
+  var usbSlot=new THREE.Mesh(new THREE.BoxGeometry(0.01,0.006,0.014),mat(0x020202,0,1));
+  usbSlot.position.set(0.125,0.052,0);
+  fcG.add(usbSlot);
+  // Boot button
+  var bootBtn=new THREE.Mesh(new THREE.CylinderGeometry(0.005,0.005,0.006,8),mat(0xcccccc,0.5,0.4));
+  bootBtn.position.set(-0.09,0.063,0);
+  fcG.add(bootBtn);
+  // Status LED (green)
+  var sLED=new THREE.Mesh(new THREE.BoxGeometry(0.006,0.003,0.006),mat(0x00ff44,0,1,{emissive:0x00ff44,emissiveIntensity:2.0}));
+  sLED.position.set(-0.07,0.063,-0.05);
+  fcG.add(sLED);
+  // Second LED (blue, activity)
+  var bLED=new THREE.Mesh(new THREE.BoxGeometry(0.006,0.003,0.006),mat(0x0044ff,0,1,{emissive:0x0044ff,emissiveIntensity:1.5}));
+  bLED.position.set(-0.07,0.063,-0.06);
+  fcG.add(bLED);
+  // Solder pads on edges (where motor wires connect)
+  for(var ep=0;ep<12;ep++){
+    var epa=ep*Math.PI*2/12;
+    fcG.add(new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.002,6),tinPad)
+      .translateX(Math.cos(epa)*0.09).translateY(0.061).translateZ(Math.sin(epa)*0.09));
+  }
+  // Conformal coating
+  var fcCoat=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.001,0.18),confCoat);
+  fcCoat.position.y=0.064;
+  fcG.add(fcCoat);
+  drone.add(fcG);
+
+  // ══════ MOTOR WIRES — 3 silicone wires per motor ══════
+  MP.forEach(function(mp){
+    var colors=[siliconeR,siliconeB,siliconeY];
+    var armAngle=Math.atan2(mp.x,mp.z);
+
+    colors.forEach(function(wireMat,wi){
+      var segments=16;
+      var pts=[];
+      for(var s=0;s<=segments;s++){
+        var t=s/segments;
+        var wx=mp.x*(1-t);
+        var wz=mp.z*(1-t);
+        var offset=(wi-1)*0.007;
+        var perpX=-Math.sin(armAngle)*offset;
+        var perpZ=Math.cos(armAngle)*offset;
+        // Natural wire droop
+        var wy=-0.006+Math.sin(t*Math.PI)*0.009-Math.sin(t*Math.PI*0.5)*0.003;
+        pts.push(new THREE.Vector3(wx+perpX,wy,wz+perpZ));
+      }
+      var curve=new THREE.CatmullRomCurve3(pts);
+      var tubeGeo=new THREE.TubeGeometry(curve,20,0.0022,5,false);
+      var wire=new THREE.Mesh(tubeGeo,wireMat);
+      wire.castShadow=true;
+      drone.add(wire);
+    });
+  });
+
+  // ══════ MOTORS — highly detailed ══════
+  var motorG=new THREE.Group();
+  parts.motors=motorG;
+  MP.forEach(function(mp){
+    var mg=new THREE.Group();
+
+    // Motor base mount (screwed to frame)
+    mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.024,0.008,12),alumAn).translateY(0.004));
+
+    // Stator core (laminated steel)
+    var statorMat=mat(0x3a3a3a,0.7,0.2);
+    mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.044,0.044,0.032,24),statorMat).translateY(0.026));
+
+    // Stator teeth and copper windings (12 teeth, 12N14P)
+    for(var t=0;t<12;t++){
+      var ta=t*Math.PI/6;
+      var cx=Math.cos(ta)*0.037,cz=Math.sin(ta)*0.037;
+      // Tooth
+      mg.add(new THREE.Mesh(new THREE.BoxGeometry(0.01,0.028,0.016),statorMat).translateX(cx).translateY(0.026).translateZ(cz));
+      // Copper winding around tooth
+      var w=new THREE.Mesh(new THREE.TorusGeometry(0.008,0.0035,5,8),copperW);
+      w.position.set(cx,0.026,cz);
+      w.rotation.x=Math.PI/2;
+      w.rotation.z=ta;
+      mg.add(w);
+    }
+
+    // Bell housing (the outer rotating part)
+    mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.054,0.050,0.022,24),bellGray).translateY(0.054));
+    mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.046,0.054,0.007,24),bellGray).translateY(0.067));
+    // Bell top cap
+    mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.048,0.046,0.003,24),mat(0x4a4a4a,0.85,0.08)).translateY(0.072));
+
+    // Magnets visible through bell gaps (dark segments)
+    for(var m=0;m<14;m++){
+      var ma=m*Math.PI*2/14;
+      var magnet=new THREE.Mesh(new THREE.BoxGeometry(0.003,0.018,0.012),mat(0x1a1a1a,0.6,0.3));
+      magnet.position.set(Math.cos(ma)*0.049,0.054,Math.sin(ma)*0.049);
+      magnet.rotation.y=-ma;
+      mg.add(magnet);
+    }
+
+    // Shaft
+    mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.0035,0.0035,0.025,8),alum).translateY(0.085));
+    // C-clip on shaft
+    mg.add(new THREE.Mesh(new THREE.TorusGeometry(0.006,0.0015,4,12),alumAn).translateY(0.09).rotateX(Math.PI/2));
+
+    // Motor mounting screws (4 per motor)
+    for(var ms=0;ms<4;ms++){
+      var msa=ms*Math.PI/2+Math.PI/4;
+      mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.006,6),mat(0x333333,0.8,0.15))
+        .translateX(Math.cos(msa)*0.018).translateY(0.002).translateZ(Math.sin(msa)*0.018));
+    }
+
+    mg.position.set(mp.x,0.01,mp.z);
+    mg.castShadow=true;
+    motorG.add(mg);
+  });
+  drone.add(motorG);
+
+  // ══════ PROPELLERS — realistic airfoil shape ══════
+  var propG=new THREE.Group();
+  parts.props=propG;
+
+  function createBlade(length,width,cw){
+    var bladeShape=new THREE.Shape();
+    // Teardrop/airfoil cross section
+    bladeShape.moveTo(0,-width*0.15);
+    bladeShape.quadraticCurveTo(length*0.15,-width*0.5,length*0.4,-width*0.48);
+    bladeShape.quadraticCurveTo(length*0.7,-width*0.35,length*0.92,-width*0.12);
+    bladeShape.quadraticCurveTo(length,0,length*0.92,width*0.08);
+    bladeShape.quadraticCurveTo(length*0.7,width*0.2,length*0.4,width*0.28);
+    bladeShape.quadraticCurveTo(length*0.15,width*0.3,0,width*0.15);
+    bladeShape.closePath();
+    var extSettings={depth:0.0025,bevelEnabled:true,bevelThickness:0.001,bevelSize:0.001,bevelSegments:2};
+    var geo=new THREE.ExtrudeGeometry(bladeShape,extSettings);
+    geo.translate(0,0,-0.00125);
+    if(!cw){geo.scale(-1,1,1);}
+    return geo;
+  }
+
+  MP.forEach(function(mp){
+    var pg=new THREE.Group();
+    // Prop hub
+    pg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.009,0.009,0.008,12),propMat));
+    // Nut on top
+    pg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.004,6),alumAn).translateY(0.005));
+
+    for(var b=0;b<3;b++){
+      var bladeGeo=createBlade(0.19,0.03,mp.cw);
+      var blade=new THREE.Mesh(bladeGeo,propMatTrans);
+      blade.rotation.x=-Math.PI/2;
+      // Slight pitch twist
+      blade.rotation.z=0.08;
+      blade.castShadow=true;
+      var bGroup=new THREE.Group();
+      bGroup.add(blade);
+      bGroup.rotation.y=b*Math.PI*2/3;
+      pg.add(bGroup);
+    }
+    pg.position.set(mp.x,0.098,mp.z);
+    propSpin.push(pg);
+    propG.add(pg);
+  });
+  drone.add(propG);
+
+  // ══════ CAMERA MODULE — detailed FPV camera ══════
+  var camG=new THREE.Group();
+  parts.camera=camG;
+  // Camera body (rounded)
+  var camBodyGeo=roundedBoxGeo(0.062,0.062,0.045,0.006,2);
+  var camBody=new THREE.Mesh(camBodyGeo,camYellow);
+  camBody.rotation.y=Math.PI/2;
+  camG.add(camBody);
+  // Front face plate
+  camG.add(new THREE.Mesh(new THREE.BoxGeometry(0.066,0.066,0.004),camBlack).translateZ(0.024));
+  // Lens barrel (multi-element)
+  var barrel1=new THREE.Mesh(new THREE.CylinderGeometry(0.023,0.020,0.018,16),mat(0x111111,0.85,0.08));
+  barrel1.rotation.x=Math.PI/2; barrel1.position.z=0.034;
+  camG.add(barrel1);
+  var barrel2=new THREE.Mesh(new THREE.CylinderGeometry(0.020,0.018,0.014,16),mat(0x0a0a0a,0.88,0.06));
+  barrel2.rotation.x=Math.PI/2; barrel2.position.z=0.044;
+  camG.add(barrel2);
+  // Front glass element with coating reflection
+  var glass=new THREE.Mesh(new THREE.SphereGeometry(0.017,16,10,0,Math.PI*2,0,Math.PI*0.3),lensGls);
+  glass.rotation.x=-Math.PI/2; glass.position.z=0.052;
+  camG.add(glass);
+  // Lens coating shimmer
+  var coating=new THREE.Mesh(new THREE.SphereGeometry(0.0175,16,10,0,Math.PI*2,0,Math.PI*0.28),lensCoat);
+  coating.rotation.x=-Math.PI/2; coating.position.z=0.053;
+  camG.add(coating);
+  // Rear connector
+  camG.add(new THREE.Mesh(new THREE.BoxGeometry(0.03,0.012,0.008),whiteM).translateZ(-0.025));
+  // Tilt mount screws
+  [-1,1].forEach(function(s){
+    camG.add(new THREE.Mesh(new THREE.CylinderGeometry(0.003,0.003,0.004,6),alumAn)
+      .translateX(s*0.035).translateZ(0.015).rotateZ(Math.PI/2));
+  });
+  camG.position.set(0,0.032,0.175);
+  camG.rotation.x=-0.45;
+  drone.add(camG);
+
+  // ══════ VTX + ANTENNA — detailed ══════
+  var vtxG=new THREE.Group();
+  parts.vtx=vtxG;
+  // VTX PCB
+  vtxG.add(new THREE.Mesh(new THREE.BoxGeometry(0.14,0.01,0.10),vtxDark).translateY(0.096));
+  // Heatsink on VTX
+  for(var fin=0;fin<6;fin++){
+    vtxG.add(new THREE.Mesh(new THREE.BoxGeometry(0.04,0.008,0.002),alumBrushed)
+      .translateY(0.105).translateX(0.01).translateZ(-0.03+fin*0.013));
+  }
+  // RF shield can
+  vtxG.add(new THREE.Mesh(new THREE.BoxGeometry(0.055,0.012,0.055),alumAn).translateY(0.106).translateZ(0.012));
+  // SMA/MMCX connector
+  vtxG.add(new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.018,8),goldM).translateY(0.096).translateZ(-0.14));
+  vtxG.add(new THREE.Mesh(new THREE.CylinderGeometry(0.005,0.005,0.004,8),mat(0xffffff,0.5,0.3)).translateY(0.106).translateZ(-0.14));
+  // Antenna mast
+  var mast=new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.003,0.26,8),antDark);
+  mast.position.set(0,0.235,-0.14);
+  vtxG.add(mast);
+  // Dipole antenna tip
+  vtxG.add(new THREE.Mesh(new THREE.CylinderGeometry(0.007,0.005,0.035,8),antDark).translateY(0.37).translateZ(-0.14));
+  vtxG.add(new THREE.Mesh(new THREE.SphereGeometry(0.009,10,8),antDark).translateY(0.39).translateZ(-0.14));
+  drone.add(vtxG);
+
+  // ══════ BATTERY — detailed LiPo pack ══════
+  var batG=new THREE.Group();
+  parts.battery=batG;
+  // Main battery body with slight puffiness (rounded)
+  var batGeo=roundedBoxGeo(0.42,0.18,0.14,0.012,2);
+  var batBody=new THREE.Mesh(batGeo,batWrap);
+  batBody.rotation.x=Math.PI/2;
+  batG.add(batBody);
+  // Cell divider lines (4S = 4 cells)
+  for(var c=1;c<4;c++){
+    batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.001,0.145,0.185),mat(0x0a2266,0,1)).translateX(-0.16+c*0.105));
+  }
+  // Label sticker
+  var labelGeo=roundedBoxGeo(0.22,0.08,0.001,0.003,1);
+  var label=new THREE.Mesh(labelGeo,whiteM);
+  label.rotation.y=Math.PI/2;
+  label.position.z=0.092;
+  batG.add(label);
+  // Red warning triangle on label
+  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.05,0.025,0.002),mat(0xcc2222,0.1,0.7)).translateX(0.13).translateZ(0.093).translateY(0.02));
+  // Brand text placeholder (small colored strip)
+  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.15,0.015,0.002),mat(0x0044cc,0.1,0.6)).translateX(-0.02).translateZ(0.093).translateY(-0.02));
+  // XT30 connector (yellow)
+  var xt30Body=new THREE.Mesh(new THREE.BoxGeometry(0.035,0.022,0.016),mat(0xccbb00,0.4,0.3));
+  xt30Body.position.set(0.24,0,0);
+  batG.add(xt30Body);
+  // XT30 pins
+  [-1,1].forEach(function(s){
+    batG.add(new THREE.Mesh(new THREE.CylinderGeometry(0.003,0.003,0.012,6),goldM).translateX(0.25).translateY(s*0.005).rotateZ(Math.PI/2));
+  });
+  // Power wires
+  var pwrR=new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.12,6),siliconeR);
+  pwrR.position.set(0.18,-0.10,0.015); pwrR.rotation.z=0.3;
+  batG.add(pwrR);
+  var pwrK=new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.12,6),siliconeK);
+  pwrK.position.set(0.18,-0.10,-0.015); pwrK.rotation.z=0.3;
+  batG.add(pwrK);
+  // Balance lead (white JST-XH connector)
+  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.028,0.012,0.016),whiteM).translateX(-0.17).translateY(0.04).translateZ(0.06));
+  // Balance wires
+  for(var bw=0;bw<5;bw++){
+    var bwColor=[siliconeK,siliconeR,siliconeY,siliconeB,whiteM][bw];
+    var bwPts=[
+      new THREE.Vector3(-0.17,0.04,0.068),
+      new THREE.Vector3(-0.17,0.05,0.08+bw*0.004),
+      new THREE.Vector3(-0.15,0.055,0.09+bw*0.003)
+    ];
+    var bwCurve=new THREE.CatmullRomCurve3(bwPts);
+    batG.add(new THREE.Mesh(new THREE.TubeGeometry(bwCurve,6,0.0015,4,false),bwColor));
+  }
+  // Velcro strap (fabric texture)
+  var strapMat=mat(0x0a0a0a,0.01,0.98);
+  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.055,0.003,0.55),strapMat).translateY(0.073));
+  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.055,0.003,0.55),strapMat).translateY(-0.073));
+  [-1,1].forEach(function(s){
+    batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.055,0.15,0.003),strapMat).translateZ(s*0.275));
+  });
+  // Strap buckle
+  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.065,0.009,0.02),alumAn).translateY(0.076).translateZ(0.26));
+
+  batG.position.set(0,0.16,0);
+  drone.add(batG);
+
+  // ══════ RX ANTENNAS — immortal-T style ══════
+  [-1,1].forEach(function(s){
+    // Antenna wire
+    var rxPts=[
+      new THREE.Vector3(s*0.03,0.09,-0.13),
+      new THREE.Vector3(s*0.04,0.14,-0.16),
+      new THREE.Vector3(s*0.06,0.22,-0.18),
+      new THREE.Vector3(s*0.055,0.28,-0.17)
+    ];
+    var rxCurve=new THREE.CatmullRomCurve3(rxPts);
+    var rxWire=new THREE.Mesh(new THREE.TubeGeometry(rxCurve,12,0.002,4,false),mat(0xaa0000,0.05,0.7));
+    drone.add(rxWire);
+    // Dipole T-element at tip
+    var tBar=new THREE.Mesh(new THREE.CylinderGeometry(0.002,0.002,0.035,4),mat(0xaa0000,0.05,0.7));
+    tBar.position.set(s*0.055,0.28,-0.17);
+    tBar.rotation.z=Math.PI/2;
+    drone.add(tBar);
+    // Heatshrink at base
+    drone.add(new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.012,6),rubberM)
+      .translateX(s*0.03).translateY(0.09).translateZ(-0.13));
+  });
+
+  drone.position.y=0.35;
+
+  // ═══ CONTROLS ═══
+  var cvEl=document.getElementById('modelCanvas');
+
+  cvEl.onmousedown=function(e){
+    dragging=true;prevX=e.clientX;prevY=e.clientY;
+    spinning=false;idleTime=Date.now();
+  };
+  cvEl.onmousemove=function(e){
+    if(!dragging)return;
+    theta-=(e.clientX-prevX)*0.005;
+    phi+=(e.clientY-prevY)*0.005;
+    phi=Math.max(-1.4,Math.min(1.4,phi));
+    prevX=e.clientX;prevY=e.clientY;
+    positionCam();
+  };
+  cvEl.onmouseup=function(){dragging=false;};
+  window.addEventListener('mouseup',function(){dragging=false;});
+
+  cvEl.onwheel=function(e){
+    e.preventDefault();
+    dist*=Math.exp(e.deltaY*0.002);
+    if(dist<0.4)dist=0.4;
+    if(dist>10)dist=10;
+    positionCam();
+    spinning=false;idleTime=Date.now();
+  };
+
+  // Touch
+  var tch=[];
+  cvEl.ontouchstart=function(e){
+    e.preventDefault();
+    tch=Array.prototype.slice.call(e.touches);
+    dragging=true;spinning=false;idleTime=Date.now();
+    if(e.touches.length===1){prevX=e.touches[0].clientX;prevY=e.touches[0].clientY;}
+  };
+  cvEl.ontouchmove=function(e){
+    e.preventDefault();
+    if(e.touches.length===1){
+      theta-=(e.touches[0].clientX-prevX)*0.005;
+      phi+=(e.touches[0].clientY-prevY)*0.005;
+      phi=Math.max(-1.4,Math.min(1.4,phi));
+      prevX=e.touches[0].clientX;prevY=e.touches[0].clientY;
+    }else if(e.touches.length===2&&tch.length===2){
+      var d0=Math.hypot(tch[0].clientX-tch[1].clientX,tch[0].clientY-tch[1].clientY);
+      var d1=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      dist*=d0/d1;
+      if(dist<0.4)dist=0.4;if(dist>10)dist=10;
+    }
+    tch=Array.prototype.slice.call(e.touches);
+    positionCam();
+  };
+  cvEl.ontouchend=function(){dragging=false;};
+
+  // Legend buttons
+  var items=document.querySelectorAll('.legend-item');
+  for(var i=0;i<items.length;i++){
+    (function(item){
+      item.onclick=function(){
+        var p=item.getAttribute('data-part');
+        if(hiPart===p){hiPart=null;unhighlight();}
+        else{hiPart=p;highlight(p);}
+      };
+    })(items[i]);
+  }
+
+  window.addEventListener('resize',function(){
+    if(!rend3d)return;
+    cam3d.aspect=window.innerWidth/window.innerHeight;
+    cam3d.updateProjectionMatrix();
+    rend3d.setSize(window.innerWidth,window.innerHeight);
+  });
+
+  positionCam();
+}
+
+function positionCam(){
+  if(!cam3d||!target)return;
+  cam3d.position.set(
+    dist*Math.cos(phi)*Math.sin(theta)+target.x,
+    dist*Math.sin(phi)+target.y,
+    dist*Math.cos(phi)*Math.cos(theta)+target.z
+  );
+  cam3d.lookAt(target);
+}
+
+function highlight(name){
+  var tg=parts[name];
+  if(!tg)return;
+  var set={};
+  tg.traverse(function(c){if(c.isMesh)set[c.id]=true;});
+  drone.traverse(function(c){
+    if(c.isMesh&&c.material){
+      if(!c.userData._oo){c.userData._oo=c.material.opacity;c.userData._ot=c.material.transparent;}
+      if(set[c.id]){c.material.transparent=false;c.material.opacity=1;}
+      else{c.material.transparent=true;c.material.opacity=0.04;}
+    }
+  });
+}
+
+function unhighlight(){
+  drone.traverse(function(c){
+    if(c.isMesh&&c.material&&c.userData._oo!==undefined){
+      c.material.opacity=c.userData._oo;
+      c.material.transparent=c.userData._ot;
+    }
+  });
+}
+
+function animateModel(){
+  if(activeMode==='model3d'&&rend3d&&cam3d&&scene3d){
+    var t=Date.now()*0.001;
+
+    // Auto-rotate when idle
+    if(!dragging&&(Date.now()-idleTime)>3000)spinning=true;
+    if(spinning){theta+=0.0015;positionCam();}
+
+    // Gentle hover bob
+    if(drone){
+      drone.position.y=0.35+Math.sin(t*1.2)*0.008;
+      drone.rotation.x=Math.sin(t*0.8)*0.008;
+      drone.rotation.z=Math.cos(t*0.6)*0.006;
+    }
+
+    // Spin props (varying speeds for realism)
+    for(var i=0;i<propSpin.length;i++){
+      propSpin[i].rotation.y+=0.12+i*0.008;
+    }
+
+    // Animate LED rainbow chase with glow
+    for(var i=0;i<ledArr.length;i++){
+      var led=ledArr[i];
+      var hue=((led.userData.li/led.userData.n)+t*0.35+led.userData.mi*0.25)%1.0;
+      var c=new THREE.Color();
+      c.setHSL(hue,1.0,0.55);
+      led.material.color.copy(c);
+      led.material.emissive.copy(c);
+      led.material.emissiveIntensity=0.8+0.5*Math.sin(t*5+led.userData.li*0.25);
+    }
+
+    // Update LED point lights to follow dominant color
+    for(var l=0;l<ledLights.length;l++){
+      var ledHue=(t*0.35+l*0.25)%1.0;
+      var lc=new THREE.Color();
+      lc.setHSL(ledHue,1.0,0.5);
+      ledLights[l].color.copy(lc);
+      ledLights[l].intensity=0.2+0.15*Math.sin(t*3+l);
+    }
+
+    // Pulse FC LEDs
+    if(parts.fc){
+      parts.fc.children.forEach(function(child){
+        if(child.material&&child.material.emissive){
+          var ei=child.material.emissiveIntensity;
+          if(ei>1){
+            child.material.emissiveIntensity=1.5+Math.sin(t*3)*0.8;
+          }
+        }
+      });
+    }
+
+    rend3d.render(scene3d,cam3d);
+  }
+  requestAnimationFrame(animateModel);
+}
+requestAnimationFrame(animateModel);
+
+// Hide HUD initially
+var mhud=document.getElementById('model-hud');
+if(mhud)mhud.style.display='none';
+</script>
+</body>
+</html>
