@@ -1256,7 +1256,7 @@ document.querySelectorAll('.card, .timeline-item').forEach(el => observer.observ
 // ═══ SpeedyBee Bee35 — Ultra-Realistic Ducted Cinewhoop ═══
 var scene3d,cam3d,rend3d,drone,propSpin=[],ledArr=[];
 var modelReady=false,dragging=false,prevX=0,prevY=0;
-var theta=0.5,phi=0.25,dist=2.2;
+var theta=0.5,phi=0.25,dist=3.8;
 var target=null;
 var hiPart=null,parts={};
 var spinning=true,idleTime=0;
@@ -1433,7 +1433,7 @@ function buildModel(){
   scene3d=new THREE.Scene();
   scene3d.background=new THREE.Color(0x080b12);
   scene3d.fog=new THREE.FogExp2(0x080b12,0.06);
-  target=new THREE.Vector3(0,0.06,0);
+  target=new THREE.Vector3(0,0.15,0);
 
   rend3d=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:false});
   rend3d.setPixelRatio(Math.min(window.devicePixelRatio,2));
@@ -1445,7 +1445,7 @@ function buildModel(){
   rend3d.outputEncoding=THREE.sRGBEncoding;
   rend3d.physicallyCorrectLights=true;
 
-  cam3d=new THREE.PerspectiveCamera(32,window.innerWidth/window.innerHeight,0.01,80);
+  cam3d=new THREE.PerspectiveCamera(36,window.innerWidth/window.innerHeight,0.01,80);
 
   // ═══ GENERATE ENV MAP ═══
   envMap=generateEnvMap(rend3d);
