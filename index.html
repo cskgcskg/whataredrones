@@ -147,6 +147,28 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
 .card .tag.red { background:rgba(255,61,90,0.08); color:var(--accent2); border-color:rgba(255,61,90,0.15); }
 .card .tag.yellow { background:rgba(255,224,61,0.08); color:var(--accent3); border-color:rgba(255,224,61,0.15); }
 
+/* ═══ COMPONENT LINKS ═══ */
+.card-links {
+  display:flex; flex-wrap:wrap; gap:8px;
+  margin-top:16px; padding-top:14px;
+  border-top:1px solid var(--border);
+}
+.card-links a {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:6px 14px; border-radius:8px;
+  font-family:'Syne',sans-serif; font-weight:600;
+  font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
+  text-decoration:none; color:var(--accent);
+  background:rgba(0,229,255,0.06);
+  border:1px solid rgba(0,229,255,0.15);
+  transition:all .25s;
+}
+.card-links a:hover {
+  background:rgba(0,229,255,0.12);
+  border-color:rgba(0,229,255,0.3);
+  color:#fff;
+}
+
 /* ═══ SECTION HEADERS ═══ */
 .section-head {
   text-align:center; margin-bottom:48px;
@@ -607,7 +629,6 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
           <div class="legend-item" data-part="props"><div class="dot" style="background:#a0ffa0"></div><div><div class="lname">Propellers × 4</div><div class="ldesc">3.5" tri-blade</div></div></div>
           <div class="legend-item" data-part="camera"><div class="dot" style="background:#ffe03d"></div><div><div class="lname">DJI O4 Air Unit Pro</div><div class="ldesc">Camera + VTX + Antenna</div></div></div>
           <div class="legend-item" data-part="battery"><div class="dot" style="background:#2255bb"></div><div><div class="lname">Tattu 6S LiPo</div><div class="ldesc">1300mAh 120C</div></div></div>
-          <div class="legend-item" data-part="esc"><div class="dot" style="background:#7c4dff"></div><div><div class="lname">4-in-1 ESC</div><div class="ldesc">35A BLHeli_S, 3-6S</div></div></div>
         </div>
       </div>
       <div id="model-title">
@@ -654,11 +675,11 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
           <tr><td>Storage</td><td>4GB built-in + microSD up to 512GB</td></tr>
         </table>
         <div class="tag">DJI O4</div><div class="tag">4K/120fps</div><div class="tag">15ms Latency</div>
-        <p style="margin-top:14px;font-size:11px;color:var(--text-dim)">
-          <a href="https://www.dji.com/o4-air-unit/specs" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">Official Specs ↗</a> · 
-          <a href="https://dl.djicdn.com/downloads/DJI_O4_Air_Unit_Series/UM/DJI_O4_Air_Unit_Series_User_Manual_v1.0_en.pdf" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">User Manual (PDF) ↗</a> · 
-          <a href="https://store.dji.com/product/dji-o4-air-unit-pro" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">DJI Store ↗</a>
-        </p>
+        <div class="card-links">
+          <a href="https://www.dji.com/o4-air-unit/specs" target="_blank" rel="noopener">Official Specs ↗</a>
+          <a href="https://dl.djicdn.com/downloads/DJI_O4_Air_Unit_Series/UM/DJI_O4_Air_Unit_Series_User_Manual_v1.0_en.pdf" target="_blank" rel="noopener">User Manual (PDF) ↗</a>
+          <a href="https://store.dji.com/product/dji-o4-air-unit-pro" target="_blank" rel="noopener">DJI Store ↗</a>
+        </div>
       </div>
 
       <!-- Frame -->
@@ -677,9 +698,9 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
           <tr><td>Camera</td><td>Adjustable tilt mount</td></tr>
         </table>
         <div class="tag">Carbon Fiber</div><div class="tag">Ducted</div>
-        <p style="margin-top:14px;font-size:11px;color:var(--text-dim)">
-          <a href="https://www.speedybee.com/speedybee-bee35-3-5-inch-frame/" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">Official Product Page ↗</a>
-        </p>
+        <div class="card-links">
+          <a href="https://www.speedybee.com/speedybee-bee35-3-5-inch-frame/" target="_blank" rel="noopener">Official Product Page ↗</a>
+        </div>
       </div>
 
       <!-- FC + ESC Stack -->
@@ -701,9 +722,9 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
           <tr><td>Mount</td><td>20×20mm, 13.5g total stack</td></tr>
         </table>
         <div class="tag">Betaflight</div><div class="tag">Bluetooth</div><div class="tag">DShot600</div>
-        <p style="margin-top:14px;font-size:11px;color:var(--text-dim)">
-          <a href="https://www.speedybee.com/speedybee-f405-mini-bls-35a-20x20-stack/" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">Official Product Page ↗</a>
-        </p>
+        <div class="card-links">
+          <a href="https://www.speedybee.com/speedybee-f405-mini-bls-35a-20x20-stack/" target="_blank" rel="noopener">Official Product Page ↗</a>
+        </div>
       </div>
 
       <!-- Motors -->
@@ -722,9 +743,9 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
           <tr><td>Shaft</td><td>M2, press-fit prop mount</td></tr>
         </table>
         <div class="tag red">Brushless</div><div class="tag">6S Optimized</div>
-        <p style="margin-top:14px;font-size:11px;color:var(--text-dim)">
-          <a href="https://www.speedybee.com/speedybee-2006-1950kv-motor-bee35-3-5-inch-fpv/" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">Official Product Page ↗</a>
-        </p>
+        <div class="card-links">
+          <a href="https://www.speedybee.com/speedybee-2006-1950kv-motor-bee35-3-5-inch-fpv/" target="_blank" rel="noopener">Official Product Page ↗</a>
+        </div>
       </div>
 
       <!-- Battery -->
@@ -744,10 +765,10 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
           <tr><td>Weight</td><td>~195g</td></tr>
         </table>
         <div class="tag red">LiPo Safety</div><div class="tag yellow">4-6 min flight</div>
-        <p style="margin-top:14px;font-size:11px;color:var(--text-dim)">
-          <a href="https://genstattu.com/ta-rl3-120c-1300-6s1p.html" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">Official Product Page ↗</a> · 
-          <a href="https://genstattu.com/tattu-r-line-batteries.html" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">R-Line Series ↗</a>
-        </p>
+        <div class="card-links">
+          <a href="https://genstattu.com/ta-rl3-120c-1300-6s1p.html" target="_blank" rel="noopener">Official Product Page ↗</a>
+          <a href="https://genstattu.com/tattu-r-line-batteries.html" target="_blank" rel="noopener">R-Line Series ↗</a>
+        </div>
       </div>
 
       <!-- Charger -->
@@ -767,10 +788,10 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
           <tr><td>Balance</td><td>Individual cell monitoring, ±0.01V</td></tr>
         </table>
         <div class="tag yellow">Balance Charging</div><div class="tag">AC/DC</div>
-        <p style="margin-top:14px;font-size:11px;color:var(--text-dim)">
-          <a href="https://www.manualslib.com/manual/3041117/Hota-D6-Pro.html" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">User Manual ↗</a> · 
-          <a href="http://www.hota-exp.com/index.php/service_l_2.html" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">HOTA Downloads ↗</a>
-        </p>
+        <div class="card-links">
+          <a href="https://www.manualslib.com/manual/3041117/Hota-D6-Pro.html" target="_blank" rel="noopener">User Manual ↗</a>
+          <a href="http://www.hota-exp.com/index.php/service_l_2.html" target="_blank" rel="noopener">HOTA Downloads ↗</a>
+        </div>
       </div>
 
       <!-- Capacitor -->
@@ -2216,8 +2237,10 @@ function positionCam(){
 
 function highlight(name){
   // DJI O4 = camera + vtx + antenna combined
+  // FC + ESC Stack = fc + esc combined
   var targets=[];
   if(name==='camera'){targets.push(parts.camera);if(parts.vtx)targets.push(parts.vtx);}
+  else if(name==='fc'){targets.push(parts.fc);if(parts.esc)targets.push(parts.esc);}
   else{var tg=parts[name];if(tg)targets.push(tg);}
   if(!targets.length)return;
   var set={};
