@@ -420,16 +420,36 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
 #modelCanvas {
   width:100%; height:100%; display:block;
   cursor:grab; position:absolute; top:0; left:0; z-index:1;
-  touch-action:none;
+  touch-action:pan-y;
 }
 #modelCanvas:active { cursor:grabbing; }
 .scroll-down-hint {
   position:absolute; bottom:28px; left:50%; transform:translateX(-50%);
-  font-family:'Syne',sans-serif; font-size:11px; letter-spacing:2px;
-  text-transform:uppercase; color:var(--text-dim);
-  animation:pulse 2s ease-in-out infinite; z-index:21;
-  pointer-events:none;
+  z-index:21; pointer-events:all;
 }
+.scroll-down-hint a {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:14px 32px; border-radius:12px;
+  font-family:'Syne',sans-serif; font-weight:700;
+  font-size:12px; letter-spacing:2px; text-transform:uppercase;
+  text-decoration:none; color:#fff;
+  background:rgba(0,229,255,0.12);
+  border:1px solid rgba(0,229,255,0.35);
+  backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  transition:all .3s; cursor:pointer;
+  animation:pulseBtn 2.5s ease-in-out infinite;
+}
+.scroll-down-hint a:hover {
+  background:rgba(0,229,255,0.22);
+  border-color:rgba(0,229,255,0.6);
+  transform:translateY(-2px);
+}
+.scroll-down-hint .arrow {
+  display:inline-block; animation:bounceArrow 1.5s ease-in-out infinite;
+  font-size:16px;
+}
+@keyframes pulseBtn { 0%,100%{opacity:0.85} 50%{opacity:1} }
+@keyframes bounceArrow { 0%,100%{transform:translateY(0)} 50%{transform:translateY(4px)} }
 
 #model-hud {
   position:absolute; top:0; left:0; right:0; bottom:0;
@@ -445,7 +465,8 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
 }
 @media(max-width:480px){
   .build-content { padding:48px 14px 48px; }
-  .scroll-down-hint { font-size:9px; bottom:18px; }
+  .scroll-down-hint { bottom:14px; }
+  .scroll-down-hint a { padding:12px 22px; font-size:10px; letter-spacing:1.5px; border-radius:10px; }
 }
 #model-legend {
   position:absolute; top:80px; left:28px;
@@ -642,13 +663,13 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
           VTX: DJI O4 Pro
         </div>
       </div>
-      <div id="model-info"><span class="info-desktop">Drag to orbit · Scroll to zoom · Click legend items to highlight</span><span class="info-mobile">Touch to orbit · Pinch to zoom · Tap below to explore</span></div>
+      <div id="model-info"><span class="info-desktop">Drag to orbit · Ctrl+Scroll to zoom · Click legend items to highlight</span><span class="info-mobile">Two fingers to orbit &amp; zoom · Tap button below for specs</span></div>
     </div>
-    <div class="scroll-down-hint">↓ Scroll for build details</div>
+    <div class="scroll-down-hint"><a href="#build-specs" onclick="event.preventDefault();document.getElementById('build-specs').scrollIntoView({behavior:'smooth'})"><span class="arrow">↓</span> View Build Specs &amp; Manuals</a></div>
   </div>
 
   <!-- ═══ BUILD COMPONENT DETAILS ═══ -->
-  <div class="build-content">
+  <div class="build-content" id="build-specs">
     <div class="section-head">
       <h2>The <span style="color:var(--accent)">Build</span></h2>
       <p>Every component in this Bee35 build, what it does, and why it was chosen. A complete 3.5" ducted cinewhoop on 6S power — built for cinematic freestyle and proximity flying.</p>
@@ -2169,39 +2190,57 @@ function buildModel(){
   window.addEventListener('mouseup',function(){dragging=false;});
 
   cvEl.onwheel=function(e){
-    e.preventDefault();
-    dist*=Math.exp(e.deltaY*0.002);
-    if(dist<0.4)dist=0.4;
-    if(dist>8)dist=8;
-    positionCam();
-    spinning=false;idleTime=Date.now();
+    // Only zoom the 3D model when Ctrl/Cmd is held — otherwise let the page scroll
+    if(e.ctrlKey||e.metaKey){
+      e.preventDefault();
+      dist*=Math.exp(e.deltaY*0.002);
+      if(dist<0.4)dist=0.4;
+      if(dist>8)dist=8;
+      positionCam();
+      spinning=false;idleTime=Date.now();
+    }
   };
 
-  // Touch
+  // Touch — single finger scrolls the page, two fingers orbit + pinch zoom
   var tch=[];
+  var touchMode=null;
   cvEl.ontouchstart=function(e){
-    e.preventDefault();
     tch=Array.prototype.slice.call(e.touches);
-    dragging=true;spinning=false;idleTime=Date.now();
-    if(e.touches.length===1){prevX=e.touches[0].clientX;prevY=e.touches[0].clientY;}
+    if(e.touches.length===2){
+      e.preventDefault();
+      touchMode='orbit';
+      dragging=true;spinning=false;idleTime=Date.now();
+      prevX=(e.touches[0].clientX+e.touches[1].clientX)/2;
+      prevY=(e.touches[0].clientY+e.touches[1].clientY)/2;
+    }else{
+      touchMode=null;
+    }
   };
   cvEl.ontouchmove=function(e){
-    e.preventDefault();
-    if(e.touches.length===1){
-      theta-=(e.touches[0].clientX-prevX)*0.005;
-      phi+=(e.touches[0].clientY-prevY)*0.005;
-      phi=Math.max(-1.4,Math.min(1.4,phi));
-      prevX=e.touches[0].clientX;prevY=e.touches[0].clientY;
-    }else if(e.touches.length===2&&tch.length===2){
-      var d0=Math.hypot(tch[0].clientX-tch[1].clientX,tch[0].clientY-tch[1].clientY);
-      var d1=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
-      dist*=d0/d1;
-      if(dist<0.4)dist=0.4;if(dist>8)dist=8;
+    if(e.touches.length===2){
+      e.preventDefault();
+      // Orbit from midpoint movement
+      var mx=(e.touches[0].clientX+e.touches[1].clientX)/2;
+      var my=(e.touches[0].clientY+e.touches[1].clientY)/2;
+      if(touchMode==='orbit'){
+        theta-=(mx-prevX)*0.005;
+        phi+=(my-prevY)*0.005;
+        phi=Math.max(-1.4,Math.min(1.4,phi));
+      }
+      prevX=mx;prevY=my;
+      // Pinch zoom
+      if(tch.length===2){
+        var d0=Math.hypot(tch[0].clientX-tch[1].clientX,tch[0].clientY-tch[1].clientY);
+        var d1=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+        dist*=d0/d1;
+        if(dist<0.4)dist=0.4;if(dist>8)dist=8;
+      }
+      tch=Array.prototype.slice.call(e.touches);
+      positionCam();
     }
-    tch=Array.prototype.slice.call(e.touches);
-    positionCam();
+    // Single finger: don't prevent default — page scrolls normally
   };
-  cvEl.ontouchend=function(){dragging=false;};
+  cvEl.ontouchend=function(){dragging=false;touchMode=null;};
 
   // Legend buttons
   var items=document.querySelectorAll('.legend-item');
