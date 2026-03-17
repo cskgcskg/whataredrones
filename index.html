@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>FPV — First Person View Drones</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&family=Source+Serif+4:ital,wght@0,400;0,600;1,400&display=swap');
@@ -31,7 +31,7 @@ body {
 
 /* ═══ CANVAS BACKGROUND ═══ */
 #bgCanvas {
-  position: fixed; top:0; left:0; width:100vw; height:100vh;
+  position: fixed; top:0; left:0; width:100vw; height:100vh; height:100dvh;
   z-index: 0; pointer-events: none;
 }
 
@@ -66,7 +66,7 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
 
 /* ═══ MAIN SECTIONS ═══ */
 .section {
-  min-height:100vh; position:relative; z-index:1;
+  min-height:100vh; min-height:100dvh; position:relative; z-index:1;
   padding:120px 48px 80px; display:none;
 }
 .section.active { display:block; }
@@ -74,7 +74,7 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
 /* ═══ HERO ═══ */
 #hero {
   flex-direction:column; justify-content:center; align-items:center;
-  text-align:center; min-height:100vh; padding-top:60px;
+  text-align:center; min-height:100vh; min-height:100dvh; padding-top:60px;
 }
 #hero.active { display:flex; }
 .hero-title {
@@ -118,7 +118,7 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
 
 /* ═══ CONTENT GRID ═══ */
 .content-grid {
-  display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));
   gap:24px; max-width:1200px; margin:0 auto;
 }
 
@@ -173,7 +173,7 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
   color:var(--text-dim); font-size:9px; letter-spacing:2px;
   text-transform:uppercase; width:120px;
 }
-.spec-table td:last-child { color:var(--text-bright); }
+.spec-table td:last-child { color:var(--text-bright); word-break:break-word; }
 
 /* ═══ FACT BOX ═══ */
 .fact-box {
@@ -266,22 +266,135 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
   color:var(--text-dim); margin-top:4px;
 }
 
-/* ═══ RESPONSIVE ═══ */
+/* ═══ RESPONSIVE — TABLET ═══ */
 @media(max-width:768px){
-  header { padding:14px 18px; flex-direction:column; gap:10px; }
-  nav a { padding:6px 12px; font-size:10px; letter-spacing:1px; }
+  header { padding:14px 16px; flex-direction:column; gap:8px; align-items:stretch; }
+  .logo { text-align:center; font-size:20px; }
+  nav {
+    overflow-x:auto; -webkit-overflow-scrolling:touch;
+    scrollbar-width:none; justify-content:flex-start;
+    padding:3px; gap:2px;
+  }
+  nav::-webkit-scrollbar { display:none; }
+  nav a { padding:8px 14px; font-size:10px; letter-spacing:1px; flex-shrink:0; }
   .section { padding:100px 20px 60px; }
   .hero-stats { flex-wrap:wrap; gap:24px; }
-  .telemetry { grid-template-columns:repeat(2,1fr); }
-  .content-grid { grid-template-columns:1fr; }
+  .hero-sub { padding:0 8px; }
+  .telemetry { grid-template-columns:repeat(2,1fr); gap:10px; }
+  .content-grid { grid-template-columns:1fr; gap:16px; }
+  .card { padding:22px 20px; }
+  .section-head h2 { font-size:clamp(22px,5vw,32px); }
+  .spec-table td { font-size:11px; }
+  .spec-table td:first-child { width:90px; }
+  .timeline { padding-left:28px; }
+}
+
+/* ═══ RESPONSIVE — 3D MODEL MOBILE ═══ */
+@media(max-width:768px){
+  #model-legend {
+    position:fixed; bottom:0; left:0; right:0; top:auto;
+    width:100%; max-width:100%; border-radius:16px 16px 0 0;
+    max-height:55vh; padding:0 0 calc(8px + env(safe-area-inset-bottom, 0px));
+    transform:translateY(calc(100% - 48px));
+    transition:transform .35s cubic-bezier(0.4,0,0.2,1);
+    z-index:30; overflow:hidden;
+  }
+  #model-legend.expanded { transform:translateY(0); overflow-y:auto; }
+  /* On mobile, show all items directly (panel slides, not items) */
+  #model-legend .legend-items {
+    max-height:none; padding:0 18px 10px; overflow:visible;
+  }
+  #model-legend .legend-header { padding:8px 18px; }
+  #model-legend .legend-chevron { display:none; }
+  #model-legend h3 { font-size:13px; }
+  .legend-item { padding:10px 0; gap:10px; }
+  .legend-item .dot { width:12px; height:12px; }
+  .legend-item .lname { font-size:12px; }
+  .legend-item .ldesc { font-size:10px; }
+
+  .legend-toggle {
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    width:100%; padding:14px 0 6px; cursor:pointer;
+    border:none; background:none;
+    font-family:'Syne',sans-serif; font-weight:600; font-size:10px;
+    letter-spacing:2px; text-transform:uppercase; color:var(--text);
+    pointer-events:all; position:relative;
+  }
+  .legend-toggle::before {
+    content:''; position:absolute; top:6px; left:50%; transform:translateX(-50%);
+    width:36px; height:4px; border-radius:2px;
+    background:rgba(255,255,255,0.15);
+  }
+  .legend-toggle .chevron {
+    display:inline-block; transition:transform .35s;
+    font-size:14px; line-height:1;
+  }
+  #model-legend.expanded .legend-toggle .chevron { transform:rotate(180deg); }
+
+  #model-title {
+    position:absolute; top:auto; bottom:60px; right:auto;
+    left:50%; transform:translateX(-50%);
+    text-align:center; width:100%; padding:0 16px;
+  }
+  #model-title h2 { font-size:16px; letter-spacing:1.5px; }
+  #model-title .sub { font-size:8px; letter-spacing:1.5px; }
+  .model-spec { text-align:center; font-size:9px; line-height:1.6; }
+  #model-info {
+    bottom:16px; font-size:8px; letter-spacing:1.5px;
+    white-space:nowrap; width:100%; text-align:center;
+    padding:0 12px;
+  }
+}
+
+/* ═══ RESPONSIVE — SMALL PHONE ═══ */
+@media(max-width:480px){
+  header { padding:10px 10px; gap:6px; }
+  .logo { font-size:18px; letter-spacing:3px; }
+  nav { border-radius:8px; padding:2px; }
+  nav a { padding:7px 10px; font-size:9px; letter-spacing:0.5px; border-radius:6px; }
+  .section { padding:90px 14px 48px; }
+  #hero { padding-top:40px; }
+  .hero-title { font-size:clamp(36px,10vw,56px); letter-spacing:3px; }
+  .hero-sub { font-size:14px; padding:0 4px; }
+  .hero-stats { gap:16px; }
+  .hero-stat .num { font-size:24px; }
+  .hero-stat .num span { font-size:16px; }
+  .hero-stat .label { font-size:8px; letter-spacing:2px; }
+  .section-head h2 { font-size:clamp(20px,6vw,28px); letter-spacing:2px; }
+  .section-head p { font-size:14px; }
+  .card { padding:18px 16px; border-radius:12px; }
+  .card h3 { font-size:14px; }
+  .card p { font-size:12.5px; }
+  .card .tag { font-size:8px; padding:2px 8px; }
+  .fact-box { padding:10px 14px; }
+  .fact-box p { font-size:11.5px; }
+  .icon-row { font-size:12px; gap:8px; }
+  .icon-row .icon { font-size:16px; }
+  .spec-table td { font-size:10px; padding:6px 0; }
+  .spec-table td:first-child { width:70px; font-size:8px; letter-spacing:1.5px; }
+  .telemetry { gap:8px; }
+  .telem-item { padding:12px 8px; border-radius:8px; }
+  .telem-item .telem-val { font-size:20px; }
+  .telem-item .telem-label { font-size:8px; letter-spacing:1.5px; }
+  .timeline { padding-left:24px; }
+  .timeline-item h4 { font-size:12px; }
+  .timeline-item p { font-size:12px; }
+
+  #model-legend { max-height:50vh; }
+  #model-legend .legend-items { padding:0 14px 10px; }
+  #model-legend .legend-header { padding:6px 14px; }
+  #model-title { bottom:52px; }
+  #model-title h2 { font-size:14px; }
+  .model-spec { font-size:8px; }
 }
 
 /* ═══ 3D MODEL TAB ═══ */
 #model3d { padding:0; }
 #model3d.active { display:block; }
 #modelCanvas {
-  width:100vw; height:100vh; display:block;
+  width:100vw; height:100vh; height:100dvh; display:block;
   cursor:grab; position:relative; z-index:1;
+  touch-action:none;
 }
 #modelCanvas:active { cursor:grabbing; }
 
@@ -294,12 +407,37 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
   pointer-events:all; width:260px;
   background:var(--panel); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
   border:1px solid var(--border); border-radius:12px;
-  padding:18px 20px; max-height:calc(100vh - 140px); overflow-y:auto;
+  padding:0; max-height:calc(100vh - 140px); overflow:hidden;
+  transition:all .35s cubic-bezier(0.4,0,0.2,1);
 }
 #model-legend.hidden { display:none; }
+#model-legend .legend-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 18px; cursor:pointer; user-select:none;
+  border-bottom:1px solid transparent;
+  transition:border-color .25s;
+}
+#model-legend.expanded .legend-header {
+  border-bottom-color:var(--border);
+}
 #model-legend h3 {
   font-family:'Syne',sans-serif; font-weight:700; font-size:14px;
-  color:#fff; margin-bottom:12px; letter-spacing:1px;
+  color:#fff; margin:0; letter-spacing:1px;
+}
+.legend-chevron {
+  font-size:10px; color:var(--text-dim); transition:transform .35s;
+  font-family:'JetBrains Mono',monospace;
+}
+#model-legend.expanded .legend-chevron { transform:rotate(180deg); }
+.legend-items {
+  max-height:0; overflow:hidden;
+  transition:max-height .4s cubic-bezier(0.4,0,0.2,1), padding .3s;
+  padding:0 18px;
+}
+#model-legend.expanded .legend-items {
+  max-height:600px;
+  padding:6px 18px 14px;
+  overflow-y:auto;
 }
 .legend-item {
   display:flex; align-items:center; gap:10px;
@@ -317,10 +455,21 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
 .legend-item .ldesc {
   font-size:9px; color:var(--text-dim); margin-top:2px; line-height:1.4;
 }
+.legend-toggle { display:none; }
+/* Ensure touch-friendly sizing on interactive elements */
+@media(hover:none){
+  .legend-item { min-height:44px; }
+  nav a { min-height:36px; display:flex; align-items:center; justify-content:center; }
+}
 #model-info {
   position:absolute; bottom:28px; left:50%; transform:translateX(-50%);
   font-size:9px; letter-spacing:2px; text-transform:uppercase;
   color:var(--text-dim);
+}
+.info-mobile { display:none; }
+@media(max-width:768px){
+  .info-desktop { display:none; }
+  .info-mobile { display:inline; }
 }
 #model-title {
   position:absolute; top:80px; right:28px;
@@ -421,15 +570,21 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
   <canvas id="modelCanvas"></canvas>
   <div id="model-hud">
     <div id="model-legend">
-      <h3>SpeedyBee Bee35</h3>
-      <div class="legend-item" data-part="frame"><div class="dot" style="background:#4a4a4a"></div><div><div class="lname">Carbon Frame</div><div class="ldesc">3.5" true-X, 3mm arms</div></div></div>
-      <div class="legend-item" data-part="fc"><div class="dot" style="background:#00e5ff"></div><div><div class="lname">Flight Controller</div><div class="ldesc">F405 + BMI270 gyro, 8kHz</div></div></div>
-      <div class="legend-item" data-part="motors"><div class="dot" style="background:#ff3d5a"></div><div><div class="lname">Motors × 4</div><div class="ldesc">1404 4500KV brushless</div></div></div>
-      <div class="legend-item" data-part="props"><div class="dot" style="background:#a0ffa0"></div><div><div class="lname">Propellers × 4</div><div class="ldesc">3.5" tri-blade, 2CW + 2CCW</div></div></div>
-      <div class="legend-item" data-part="camera"><div class="dot" style="background:#ffe03d"></div><div><div class="lname">FPV Camera</div><div class="ldesc">Runcam Nano, 25° tilt</div></div></div>
-      <div class="legend-item" data-part="vtx"><div class="dot" style="background:#ff9800"></div><div><div class="lname">VTX + Antenna</div><div class="ldesc">400mW 5.8GHz, LHCP</div></div></div>
-      <div class="legend-item" data-part="battery"><div class="dot" style="background:#ff3d5a"></div><div><div class="lname">LiPo Battery</div><div class="ldesc">4S 850mAh 75C</div></div></div>
-      <div class="legend-item" data-part="esc"><div class="dot" style="background:#7c4dff"></div><div><div class="lname">4-in-1 ESC</div><div class="ldesc">35A BLHeli_S, DShot600</div></div></div>
+      <button class="legend-toggle" id="legendToggle"><span class="chevron">▲</span> Components</button>
+      <div class="legend-header" id="legendHeader">
+        <h3>SpeedyBee Bee35</h3>
+        <span class="legend-chevron">▼</span>
+      </div>
+      <div class="legend-items">
+        <div class="legend-item" data-part="frame"><div class="dot" style="background:#4a4a4a"></div><div><div class="lname">Carbon Frame</div><div class="ldesc">3.5" true-X, 3mm arms</div></div></div>
+        <div class="legend-item" data-part="fc"><div class="dot" style="background:#00e5ff"></div><div><div class="lname">Flight Controller</div><div class="ldesc">F405 + BMI270 gyro, 8kHz</div></div></div>
+        <div class="legend-item" data-part="motors"><div class="dot" style="background:#ff3d5a"></div><div><div class="lname">Motors × 4</div><div class="ldesc">1404 4500KV brushless</div></div></div>
+        <div class="legend-item" data-part="props"><div class="dot" style="background:#a0ffa0"></div><div><div class="lname">Propellers × 4</div><div class="ldesc">3.5" tri-blade, 2CW + 2CCW</div></div></div>
+        <div class="legend-item" data-part="camera"><div class="dot" style="background:#ffe03d"></div><div><div class="lname">FPV Camera</div><div class="ldesc">Runcam Nano, 25° tilt</div></div></div>
+        <div class="legend-item" data-part="vtx"><div class="dot" style="background:#ff9800"></div><div><div class="lname">VTX + Antenna</div><div class="ldesc">400mW 5.8GHz, LHCP</div></div></div>
+        <div class="legend-item" data-part="battery"><div class="dot" style="background:#ff3d5a"></div><div><div class="lname">LiPo Battery</div><div class="ldesc">4S 850mAh 75C</div></div></div>
+        <div class="legend-item" data-part="esc"><div class="dot" style="background:#7c4dff"></div><div><div class="lname">4-in-1 ESC</div><div class="ldesc">35A BLHeli_S, DShot600</div></div></div>
+      </div>
     </div>
     <div id="model-title">
       <h2>Bee<span style="color:var(--accent)">35</span></h2>
@@ -442,7 +597,7 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
         VTX: 400mW 5.8GHz
       </div>
     </div>
-    <div id="model-info">Drag to orbit · Scroll to zoom · Click legend to highlight</div>
+    <div id="model-info"><span class="info-desktop">Drag to orbit · Scroll to zoom · Click legend items to highlight</span><span class="info-mobile">Touch to orbit · Pinch to zoom · Tap below to explore</span></div>
   </div>
 </section>
 
@@ -544,7 +699,7 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
     <div class="card" style="grid-column:1/-1">
       <h3>The Four Forces</h3>
       <p>A quadcopter generates all its lift from four spinning propellers — there are no wings, no control surfaces. Everything is done by varying motor speeds. Two motors spin clockwise and two counter-clockwise to cancel out torque.</p>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:16px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:16px;margin-top:16px">
         <div class="fact-box"><span class="fact-label">Throttle (Altitude)</span><p>All four motors speed up or slow down equally. More thrust = climb. Less = descend.</p></div>
         <div class="fact-box"><span class="fact-label">Roll (Left/Right)</span><p>One side spins faster, tilting the quad. Thrust vector angles sideways → lateral movement.</p></div>
         <div class="fact-box"><span class="fact-label">Pitch (Fwd/Back)</span><p>Front or rear motors speed up. Quad tilts forward → thrust pushes it ahead.</p></div>
@@ -825,6 +980,10 @@ document.querySelectorAll('#mainNav a').forEach(link => {
     // Model HUD
     const mhud = document.getElementById('model-hud');
     if (mhud) mhud.style.display = tab === 'model3d' ? 'block' : 'none';
+    // Lock body scroll when 3D model is active (prevents mobile bounce)
+    document.body.style.overflow = tab === 'model3d' ? 'hidden' : '';
+    document.body.style.position = tab === 'model3d' ? 'fixed' : '';
+    document.body.style.width = tab === 'model3d' ? '100%' : '';
     if (tab === 'model3d') {
       buildModel();
       if (rend3d) {
@@ -847,98 +1006,224 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.1 });
 
 document.querySelectorAll('.card, .timeline-item').forEach(el => observer.observe(el));
+
+// ═══ LEGEND TOGGLE (Desktop + Mobile) ═══
+(function(){
+  var toggle = document.getElementById('legendToggle');
+  var header = document.getElementById('legendHeader');
+  var legend = document.getElementById('model-legend');
+  if(!legend) return;
+
+  // Desktop: click header row to expand/collapse
+  if(header){
+    header.addEventListener('click', function(e){
+      e.stopPropagation();
+      legend.classList.toggle('expanded');
+    });
+  }
+  // Mobile: bottom drawer toggle button
+  if(toggle){
+    toggle.addEventListener('click', function(e){
+      e.stopPropagation();
+      legend.classList.toggle('expanded');
+    });
+  }
+  // Close legend when clicking outside on mobile
+  document.addEventListener('click', function(e){
+    if(window.innerWidth <= 768 && legend.classList.contains('expanded')){
+      if(!legend.contains(e.target)){
+        legend.classList.remove('expanded');
+      }
+    }
+  });
+  // Scroll active nav tab into view on mobile
+  var activeTab = document.querySelector('#mainNav a.active');
+  if(activeTab && window.innerWidth <= 768){
+    activeTab.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+  }
+  document.querySelectorAll('#mainNav a').forEach(function(link){
+    link.addEventListener('click',function(){
+      if(window.innerWidth <= 768){
+        setTimeout(function(){ link.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'}); },50);
+      }
+      // Close legend when switching tabs
+      if(legend) legend.classList.remove('expanded');
+    });
+  });
+})();
 </script>
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 // ═══ SpeedyBee Bee35 — Ultra-Realistic Ducted Cinewhoop ═══
-var scene3d,cam3d,rend3d,drone,propSpin=[],ledArr=[],ledLights=[];
+var scene3d,cam3d,rend3d,drone,propSpin=[],ledArr=[];
 var modelReady=false,dragging=false,prevX=0,prevY=0;
 var theta=0.5,phi=0.25,dist=2.2;
 var target=null;
 var hiPart=null,parts={};
 var spinning=true,idleTime=0;
 var envMap=null;
+var dustParticles=null;
+var groundMirror=null;
 
+// ═══ GENERATE ENVIRONMENT MAP ═══
+function generateEnvMap(renderer){
+  var cubeRenderTarget=new THREE.WebGLCubeRenderTarget(256,{
+    format:THREE.RGBFormat,
+    generateMipmaps:true,
+    minFilter:THREE.LinearMipmapLinearFilter
+  });
+  var cubeCamera=new THREE.CubeCamera(0.1,100,cubeRenderTarget);
+  var envScene=new THREE.Scene();
+
+  // Gradient sky sphere
+  var skyGeo=new THREE.SphereGeometry(50,32,16);
+  var skyColors=[];
+  var posArr=skyGeo.attributes.position;
+  for(var i=0;i<posArr.count;i++){
+    var y=posArr.getY(i)/50;
+    var c=new THREE.Color();
+    if(y>0){
+      c.setRGB(0.02+y*0.04, 0.03+y*0.06, 0.08+y*0.15);
+    }else{
+      c.setRGB(0.04, 0.05, 0.08);
+    }
+    skyColors.push(c.r,c.g,c.b);
+  }
+  skyGeo.setAttribute('color',new THREE.Float32BufferAttribute(skyColors,3));
+  var skyMat=new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide});
+  envScene.add(new THREE.Mesh(skyGeo,skyMat));
+
+  // Subtle light sources in env
+  var envLight1=new THREE.Mesh(new THREE.SphereGeometry(2,8,4),new THREE.MeshBasicMaterial({color:0xfff8e8}));
+  envLight1.position.set(15,25,20);
+  envScene.add(envLight1);
+  var envLight2=new THREE.Mesh(new THREE.SphereGeometry(1.5,8,4),new THREE.MeshBasicMaterial({color:0x88aadd}));
+  envLight2.position.set(-20,15,-15);
+  envScene.add(envLight2);
+  var envLight3=new THREE.Mesh(new THREE.SphereGeometry(1,8,4),new THREE.MeshBasicMaterial({color:0xffaa66}));
+  envLight3.position.set(5,8,-25);
+  envScene.add(envLight3);
+
+  cubeCamera.update(renderer,envScene);
+  return cubeRenderTarget.texture;
+}
+
+// ═══ MATERIAL FACTORY ═══
 function mat(c,m,r,extra){
   var o={color:c,metalness:m!==undefined?m:0.5,roughness:r!==undefined?r:0.5};
   if(extra){for(var k in extra)o[k]=extra[k];}
-  var material=new THREE.MeshStandardMaterial(o);
-  if(envMap) material.envMap=envMap;
-  return material;
+  if(envMap)o.envMap=envMap;
+  o.envMapIntensity=o.envMapIntensity||0.6;
+  return new THREE.MeshStandardMaterial(o);
 }
 
-// Create procedural environment cubemap for realistic reflections
-function createEnvMap(){
-  var size=128;
-  var cubeRT=new THREE.WebGLCubeRenderTarget(size,{
-    format:THREE.RGBFormat,generateMipmaps:true,minFilter:THREE.LinearMipmapLinearFilter
+// ═══ CARBON FIBER TEXTURE (Procedural) ═══
+function createCarbonTexture(){
+  var cv=document.createElement('canvas');
+  cv.width=256;cv.height=256;
+  var ctx=cv.getContext('2d');
+  // Base dark
+  ctx.fillStyle='#0e0e0e';
+  ctx.fillRect(0,0,256,256);
+  // Weave pattern
+  var size=4;
+  for(var y=0;y<256;y+=size){
+    for(var x=0;x<256;x+=size){
+      var row=Math.floor(y/size);
+      var col=Math.floor(x/size);
+      var bright;
+      if((row+col)%2===0){
+        bright=Math.random()*8+14;
+      }else{
+        bright=Math.random()*5+8;
+      }
+      // Subtle shimmer
+      if((row%4<2)!==(col%4<2)){
+        bright+=4;
+      }
+      ctx.fillStyle='rgb('+bright+','+bright+','+(bright+1)+')';
+      ctx.fillRect(x,y,size,size);
+    }
+  }
+  var tex=new THREE.CanvasTexture(cv);
+  tex.wrapS=tex.wrapT=THREE.RepeatWrapping;
+  tex.repeat.set(6,6);
+  return tex;
+}
+
+// ═══ SCRATCHED METAL TEXTURE ═══
+function createScratchTexture(){
+  var cv=document.createElement('canvas');
+  cv.width=128;cv.height=128;
+  var ctx=cv.getContext('2d');
+  ctx.fillStyle='#888';
+  ctx.fillRect(0,0,128,128);
+  ctx.globalAlpha=0.15;
+  for(var i=0;i<60;i++){
+    ctx.strokeStyle='rgb('+(130+Math.random()*60)+','+(130+Math.random()*60)+','+(130+Math.random()*60)+')';
+    ctx.lineWidth=Math.random()*0.8+0.2;
+    ctx.beginPath();
+    var sx=Math.random()*128,sy=Math.random()*128;
+    var ang=Math.random()*0.4-0.2;
+    ctx.moveTo(sx,sy);
+    ctx.lineTo(sx+Math.cos(ang)*60,sy+Math.sin(ang)*60);
+    ctx.stroke();
+  }
+  var tex=new THREE.CanvasTexture(cv);
+  tex.wrapS=tex.wrapT=THREE.RepeatWrapping;
+  tex.repeat.set(2,2);
+  return tex;
+}
+
+// ═══ NOISE BUMP MAP ═══
+function createBumpMap(grain){
+  var s=grain||128;
+  var cv=document.createElement('canvas');
+  cv.width=s;cv.height=s;
+  var ctx=cv.getContext('2d');
+  var id=ctx.createImageData(s,s);
+  for(var i=0;i<id.data.length;i+=4){
+    var v=Math.random()*60+98;
+    id.data[i]=id.data[i+1]=id.data[i+2]=v;
+    id.data[i+3]=255;
+  }
+  ctx.putImageData(id,0,0);
+  var tex=new THREE.CanvasTexture(cv);
+  tex.wrapS=tex.wrapT=THREE.RepeatWrapping;
+  return tex;
+}
+
+// ═══ DUST PARTICLES ═══
+function createDustParticles(scene){
+  var geo=new THREE.BufferGeometry();
+  var count=600;
+  var positions=new Float32Array(count*3);
+  var sizes=new Float32Array(count);
+  var opacities=new Float32Array(count);
+  for(var i=0;i<count;i++){
+    positions[i*3]=(Math.random()-0.5)*8;
+    positions[i*3+1]=Math.random()*4-0.3;
+    positions[i*3+2]=(Math.random()-0.5)*8;
+    sizes[i]=Math.random()*2+0.5;
+    opacities[i]=Math.random();
+  }
+  geo.setAttribute('position',new THREE.BufferAttribute(positions,3));
+  geo.setAttribute('size',new THREE.BufferAttribute(sizes,1));
+  geo.setAttribute('opacity',new THREE.BufferAttribute(opacities,1));
+
+  var dustMat=new THREE.PointsMaterial({
+    color:0x667788,
+    size:0.008,
+    transparent:true,
+    opacity:0.25,
+    sizeAttenuation:true,
+    depthWrite:false,
+    blending:THREE.AdditiveBlending
   });
-  var cubeScene=new THREE.Scene();
-  // Gradient sky sphere
-  var skyGeo=new THREE.SphereGeometry(50,32,16);
-  var skyVert=`varying vec3 vWorldPosition;
-  void main(){
-    vec4 wp=modelMatrix*vec4(position,1.0);
-    vWorldPosition=wp.xyz;
-    gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
-  }`;
-  var skyFrag=`varying vec3 vWorldPosition;
-  void main(){
-    vec3 dir=normalize(vWorldPosition);
-    float h=dir.y*0.5+0.5;
-    vec3 top=vec3(0.08,0.12,0.22);
-    vec3 mid=vec3(0.04,0.06,0.12);
-    vec3 bot=vec3(0.02,0.03,0.06);
-    vec3 col=mix(bot,mid,smoothstep(0.0,0.3,h));
-    col=mix(col,top,smoothstep(0.3,0.8,h));
-    // Warm horizon glow
-    float horizonGlow=exp(-8.0*abs(dir.y))*0.3;
-    col+=vec3(0.2,0.12,0.06)*horizonGlow;
-    // Subtle cool highlights at top
-    col+=vec3(0.02,0.04,0.08)*smoothstep(0.6,1.0,h);
-    gl_FragColor=vec4(col,1.0);
-  }`;
-  var skyMat=new THREE.ShaderMaterial({vertexShader:skyVert,fragmentShader:skyFrag,side:THREE.BackSide});
-  cubeScene.add(new THREE.Mesh(skyGeo,skyMat));
-  // Add some accent light spots for reflection variety
-  var spotGeo=new THREE.SphereGeometry(2,8,4);
-  var spotMat1=new THREE.MeshBasicMaterial({color:0x00aaff});
-  var spot1=new THREE.Mesh(spotGeo,spotMat1);
-  spot1.position.set(15,10,8);
-  cubeScene.add(spot1);
-  var spotMat2=new THREE.MeshBasicMaterial({color:0xff6633});
-  var spot2=new THREE.Mesh(spotGeo,spotMat2);
-  spot2.position.set(-12,6,-10);
-  cubeScene.add(spot2);
-  var spotMat3=new THREE.MeshBasicMaterial({color:0xffffff});
-  var spot3=new THREE.Mesh(spotGeo,spotMat3);
-  spot3.position.set(0,20,0);
-  cubeScene.add(spot3);
-
-  var cubeCam=new THREE.CubeCamera(0.1,100,cubeRT);
-  cubeCam.update(rend3d,cubeScene);
-  return cubeRT.texture;
-}
-
-// Rounded box helper
-function roundedBoxGeo(w,h,d,r,seg){
-  var shape=new THREE.Shape();
-  var hw=w/2,hh=h/2;
-  r=Math.min(r,hw,hh);
-  shape.moveTo(-hw+r,-hh);
-  shape.lineTo(hw-r,-hh);
-  shape.quadraticCurveTo(hw,-hh,hw,-hh+r);
-  shape.lineTo(hw,hh-r);
-  shape.quadraticCurveTo(hw,hh,hw-r,hh);
-  shape.lineTo(-hw+r,hh);
-  shape.quadraticCurveTo(-hw,hh,-hw,hh-r);
-  shape.lineTo(-hw,-hh+r);
-  shape.quadraticCurveTo(-hw,-hh,-hw+r,-hh);
-  var extSettings={depth:d,bevelEnabled:false};
-  var geo=new THREE.ExtrudeGeometry(shape,extSettings);
-  geo.translate(0,0,-d/2);
-  return geo;
+  dustParticles=new THREE.Points(geo,dustMat);
+  scene.add(dustParticles);
 }
 
 function buildModel(){
@@ -950,123 +1235,198 @@ function buildModel(){
 
   scene3d=new THREE.Scene();
   scene3d.background=new THREE.Color(0x080b12);
-  scene3d.fog=new THREE.FogExp2(0x080b12,0.025);
-  target=new THREE.Vector3(0,0.08,0);
+  scene3d.fog=new THREE.FogExp2(0x080b12,0.06);
+  target=new THREE.Vector3(0,0.06,0);
 
-  rend3d=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'});
+  rend3d=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:false});
   rend3d.setPixelRatio(Math.min(window.devicePixelRatio,2));
   rend3d.setSize(window.innerWidth,window.innerHeight);
   rend3d.shadowMap.enabled=true;
   rend3d.shadowMap.type=THREE.PCFSoftShadowMap;
   rend3d.toneMapping=THREE.ACESFilmicToneMapping;
-  rend3d.toneMappingExposure=1.35;
+  rend3d.toneMappingExposure=1.4;
   rend3d.outputEncoding=THREE.sRGBEncoding;
   rend3d.physicallyCorrectLights=true;
 
-  cam3d=new THREE.PerspectiveCamera(34,window.innerWidth/window.innerHeight,0.01,80);
+  cam3d=new THREE.PerspectiveCamera(32,window.innerWidth/window.innerHeight,0.01,80);
 
-  // Create environment map first
-  envMap=createEnvMap();
-  scene3d.environment=envMap;
+  // ═══ GENERATE ENV MAP ═══
+  envMap=generateEnvMap(rend3d);
 
-  // ═══ CINEMATIC LIGHTING ═══
-  // Hemisphere for ambient fill
-  var hemiL=new THREE.HemisphereLight(0x556688,0x111118,0.6);
-  scene3d.add(hemiL);
+  // ═══ LIGHTING — Cinematic 5-point ═══
+  // Ambient hemisphere
+  var hemi=new THREE.HemisphereLight(0x445566,0x111118,0.35);
+  scene3d.add(hemi);
 
-  // Key light — warm, strong, with shadows
-  var keyL=new THREE.DirectionalLight(0xfff0dd,4.0);
-  keyL.position.set(2.5,5,3.5);
+  // Key light (warm, sun-like, from upper right)
+  var keyL=new THREE.DirectionalLight(0xfff0dd,4.5);
+  keyL.position.set(2.5,5,3);
   keyL.castShadow=true;
-  keyL.shadow.mapSize.set(4096,4096);
-  keyL.shadow.bias=-0.00015;
+  keyL.shadow.mapSize.set(2048,2048);
+  keyL.shadow.bias=-0.0001;
   keyL.shadow.normalBias=0.02;
   keyL.shadow.radius=4;
   var sc=keyL.shadow.camera;
-  sc.near=0.5;sc.far=15;sc.left=-3;sc.right=3;sc.top=3;sc.bottom=-3;
+  sc.near=0.5;sc.far=14;sc.left=-3;sc.right=3;sc.top=3;sc.bottom=-3;
   scene3d.add(keyL);
 
-  // Fill light — cool, softer
-  var fillL=new THREE.DirectionalLight(0x88aadd,1.8);
-  fillL.position.set(-3.5,3,-2.5);
+  // Fill light (cool blue from left)
+  var fillL=new THREE.DirectionalLight(0x6688cc,1.8);
+  fillL.position.set(-4,3,-1);
   scene3d.add(fillL);
 
-  // Rim/back light — warm accent
-  var rimL=new THREE.DirectionalLight(0xffaa66,1.2);
-  rimL.position.set(0,2,-4);
+  // Rim/back light (warm edge highlight)
+  var rimL=new THREE.DirectionalLight(0xffaa55,1.5);
+  rimL.position.set(0.5,2,-4);
   scene3d.add(rimL);
 
-  // Top light for catching specular highlights
-  var topL=new THREE.PointLight(0xffffff,0.8,10);
-  topL.position.set(0,5,0);
+  // Accent underlight (subtle cyan from below)
+  var underL=new THREE.PointLight(0x00ccff,0.6,5);
+  underL.position.set(0,-0.2,0);
+  scene3d.add(underL);
+
+  // Top spot for specular highlights
+  var topL=new THREE.SpotLight(0xffffff,1.2,10,Math.PI/6,0.5,1);
+  topL.position.set(0.5,5,0.5);
+  topL.castShadow=false;
   scene3d.add(topL);
 
-  // Low accent light (cyan, from front-below) for cinematic drama
-  var accentL=new THREE.PointLight(0x00ccff,0.4,6);
-  accentL.position.set(0,-0.5,2);
-  scene3d.add(accentL);
-
-  // ═══ GROUND — reflective dark surface ═══
-  var gndMat=new THREE.MeshStandardMaterial({
-    color:0x0a0d14,metalness:0.95,roughness:0.08,envMap:envMap,envMapIntensity:0.8
-  });
-  var gnd=new THREE.Mesh(new THREE.PlaneGeometry(30,30),gndMat);
+  // ═══ GROUND — Reflective dark surface ═══
+  var carbonTex=createCarbonTexture();
+  var gndBump=createBumpMap(256);
+  gndBump.repeat.set(40,40);
+  var gnd=new THREE.Mesh(
+    new THREE.PlaneGeometry(20,20),
+    new THREE.MeshStandardMaterial({
+      color:0x0a0d14,
+      metalness:0.92,
+      roughness:0.12,
+      envMap:envMap,
+      envMapIntensity:0.5,
+      bumpMap:gndBump,
+      bumpScale:0.002
+    })
+  );
   gnd.rotation.x=-Math.PI/2;
   gnd.position.y=-0.35;
   gnd.receiveShadow=true;
   scene3d.add(gnd);
 
-  // Subtle concentric rings on ground
-  for(var gr=0;gr<5;gr++){
-    var ringR=1.5+gr*1.8;
-    var ringGeo=new THREE.RingGeometry(ringR-0.005,ringR+0.005,80);
-    var ringMat=new THREE.MeshBasicMaterial({color:0x112233,transparent:true,opacity:0.15-gr*0.02});
-    var ring=new THREE.Mesh(ringGeo,ringMat);
-    ring.rotation.x=-Math.PI/2;
-    ring.position.y=-0.348;
-    scene3d.add(ring);
-  }
-
-  var grid=new THREE.GridHelper(30,120,0x141a28,0x0c1118);
+  // Subtle grid lines
+  var grid=new THREE.GridHelper(20,80,0x151a26,0x0c1018);
   grid.position.y=-0.349;
   grid.material.transparent=true;
   grid.material.opacity=0.4;
   scene3d.add(grid);
 
-  // ═══ PBR MATERIALS ═══
-  var carbon=mat(0x0e0e0e,0.25,0.32);
-  var carbonPol=mat(0x161616,0.4,0.15); // Polished carbon
-  var carbonWeave=mat(0x111111,0.3,0.25); // Shows texture
-  var ductPlastic=mat(0x0f0f0f,0.08,0.55);
-  var alum=mat(0xcccccc,0.95,0.06);
-  var alumAn=mat(0x808080,0.9,0.12); // Anodized aluminum
-  var alumBrushed=mat(0x999999,0.88,0.2);
-  var bellGray=mat(0x555555,0.85,0.1);
-  var copperW=mat(0xcc8844,0.82,0.22);
-  var fcGreen=mat(0x004400,0.2,0.6,{emissive:0x001100,emissiveIntensity:0.08});
-  var escDarkPCB=mat(0x0a0a0a,0.15,0.6);
-  var propMat=mat(0x151515,0.04,0.65,{side:THREE.DoubleSide});
-  var propMatTrans=mat(0x181818,0.04,0.55,{side:THREE.DoubleSide,transparent:true,opacity:0.9});
-  var camYellow=mat(0xddaa00,0.35,0.2);
-  var camBlack=mat(0x080808,0.25,0.45);
-  var lensGls=mat(0x020208,0.98,0.02,{transparent:true,opacity:0.75});
-  var lensCoat=mat(0x112244,0.95,0.05,{transparent:true,opacity:0.4}); // lens coating reflection
-  var batBlue=mat(0x1a44aa,0.08,0.55);
-  var batWrap=mat(0x1133aa,0.05,0.7); // Battery heatshrink
-  var vtxDark=mat(0x111111,0.2,0.5);
-  var antDark=mat(0x1a1a1a,0.15,0.6);
-  var goldM=mat(0xddbb44,0.9,0.08);
-  var chipM=mat(0x0c0c0c,0.45,0.35);
-  var chipQFP=mat(0x222222,0.6,0.2); // IC package
-  var rubberM=mat(0x0e0e0e,0.01,0.97);
-  var whiteM=mat(0xeeeeee,0.04,0.85);
-  var siliconeR=mat(0xcc2222,0.06,0.7);
-  var siliconeB=mat(0x2222cc,0.06,0.7);
-  var siliconeY=mat(0xcccc22,0.06,0.7);
-  var siliconeK=mat(0x1a1a1a,0.06,0.7);
-  var solderM=mat(0xaaaaaa,0.7,0.3);
-  var tinPad=mat(0x888888,0.8,0.15);
-  var confCoat=mat(0x222200,0.1,0.4,{transparent:true,opacity:0.3}); // conformal coating
+  // Dust particles
+  createDustParticles(scene3d);
+
+  // ═══ TEXTURES ═══
+  var carbonFiberTex=createCarbonTexture();
+  var scratchTex=createScratchTexture();
+  var pcbBump=createBumpMap(64);
+  pcbBump.repeat.set(3,3);
+
+  // ═══ MATERIALS — Physically accurate ═══
+  var carbon=new THREE.MeshStandardMaterial({
+    map:carbonFiberTex,
+    metalness:0.35,roughness:0.25,
+    envMap:envMap,envMapIntensity:0.8,
+    bumpMap:createBumpMap(128),bumpScale:0.003
+  });
+  var carbonPol=new THREE.MeshStandardMaterial({
+    map:carbonFiberTex,
+    metalness:0.5,roughness:0.15,
+    envMap:envMap,envMapIntensity:1.0,
+    bumpMap:createBumpMap(128),bumpScale:0.002
+  });
+  var ductPlastic=new THREE.MeshStandardMaterial({
+    color:0x0d0d0d,metalness:0.08,roughness:0.55,
+    envMap:envMap,envMapIntensity:0.4,
+    bumpMap:createBumpMap(64),bumpScale:0.005
+  });
+  var alum=new THREE.MeshStandardMaterial({
+    color:0xcccccc,metalness:0.95,roughness:0.06,
+    envMap:envMap,envMapIntensity:1.2,
+    roughnessMap:scratchTex
+  });
+  var alumAn=new THREE.MeshStandardMaterial({
+    color:0x888888,metalness:0.9,roughness:0.12,
+    envMap:envMap,envMapIntensity:0.9
+  });
+  var bellGray=new THREE.MeshStandardMaterial({
+    color:0x555555,metalness:0.85,roughness:0.12,
+    envMap:envMap,envMapIntensity:1.0,
+    roughnessMap:scratchTex
+  });
+  var copperW=new THREE.MeshStandardMaterial({
+    color:0xcc8833,metalness:0.82,roughness:0.22,
+    envMap:envMap,envMapIntensity:1.1
+  });
+  var fcYellow=new THREE.MeshStandardMaterial({
+    color:0xccaa00,metalness:0.3,roughness:0.35,
+    envMap:envMap,envMapIntensity:0.5,
+    emissive:0x221800,emissiveIntensity:0.1,
+    bumpMap:pcbBump,bumpScale:0.004
+  });
+  var escDark=new THREE.MeshStandardMaterial({
+    color:0x1a1a1a,metalness:0.25,roughness:0.45,
+    envMap:envMap,envMapIntensity:0.3,
+    bumpMap:pcbBump,bumpScale:0.005
+  });
+  var propDark=new THREE.MeshStandardMaterial({
+    color:0x161616,metalness:0.04,roughness:0.65,
+    side:THREE.DoubleSide,
+    envMap:envMap,envMapIntensity:0.2
+  });
+  var camYellow=new THREE.MeshStandardMaterial({
+    color:0xddaa00,metalness:0.45,roughness:0.2,
+    envMap:envMap,envMapIntensity:0.8
+  });
+  var camBlack=new THREE.MeshStandardMaterial({
+    color:0x080808,metalness:0.35,roughness:0.45,
+    envMap:envMap,envMapIntensity:0.5
+  });
+  var lensGls=new THREE.MeshStandardMaterial({
+    color:0x030310,metalness:0.98,roughness:0.02,
+    transparent:true,opacity:0.75,
+    envMap:envMap,envMapIntensity:2.0
+  });
+  var batBlue=new THREE.MeshStandardMaterial({
+    color:0x2255bb,metalness:0.08,roughness:0.52,
+    envMap:envMap,envMapIntensity:0.3,
+    bumpMap:createBumpMap(64),bumpScale:0.008
+  });
+  var vtxDark=new THREE.MeshStandardMaterial({
+    color:0x111111,metalness:0.2,roughness:0.5,
+    envMap:envMap,envMapIntensity:0.3,
+    bumpMap:pcbBump,bumpScale:0.004
+  });
+  var antDark=new THREE.MeshStandardMaterial({
+    color:0x1a1a1a,metalness:0.15,roughness:0.6,
+    envMap:envMap,envMapIntensity:0.3
+  });
+  var goldM=new THREE.MeshStandardMaterial({
+    color:0xddbb33,metalness:0.92,roughness:0.08,
+    envMap:envMap,envMapIntensity:1.5
+  });
+  var chipM=new THREE.MeshStandardMaterial({
+    color:0x0c0c0c,metalness:0.55,roughness:0.28,
+    envMap:envMap,envMapIntensity:0.6
+  });
+  var rubberM=new THREE.MeshStandardMaterial({
+    color:0x101010,metalness:0.0,roughness:0.95,
+    envMap:envMap,envMapIntensity:0.05
+  });
+  var whiteM=new THREE.MeshStandardMaterial({
+    color:0xdddddd,metalness:0.03,roughness:0.8,
+    envMap:envMap,envMapIntensity:0.2
+  });
+  var siliconeR=new THREE.MeshStandardMaterial({color:0xcc2222,metalness:0.05,roughness:0.7,envMap:envMap,envMapIntensity:0.15});
+  var siliconeB=new THREE.MeshStandardMaterial({color:0x2222cc,metalness:0.05,roughness:0.7,envMap:envMap,envMapIntensity:0.15});
+  var siliconeY=new THREE.MeshStandardMaterial({color:0xcccc22,metalness:0.05,roughness:0.7,envMap:envMap,envMapIntensity:0.15});
+  var siliconeK=new THREE.MeshStandardMaterial({color:0x1a1a1a,metalness:0.05,roughness:0.7,envMap:envMap,envMapIntensity:0.1});
 
   drone=new THREE.Group();
   scene3d.add(drone);
@@ -1085,126 +1445,128 @@ function buildModel(){
   var frameG=new THREE.Group();
   parts.frame=frameG;
 
-  // Arms with beveled edges (more realistic than flat boxes)
-  var armLen=1.22,armW=0.065,armH=0.022;
-  [-1,1].forEach(function(dir){
-    // Main arm body
-    var arm=new THREE.Mesh(new THREE.BoxGeometry(armLen,armH,armW),carbon);
-    arm.rotation.y=dir*Math.PI/4;
-    arm.castShadow=true;
-    frameG.add(arm);
-    // Top bevel strip (simulates chamfered edge catch-light)
-    var bevel=new THREE.Mesh(new THREE.BoxGeometry(armLen-0.02,0.002,armW+0.003),carbonPol);
-    bevel.rotation.y=dir*Math.PI/4;
-    bevel.position.y=armH/2+0.001;
-    frameG.add(bevel);
+  // The X arms — beveled carbon structure
+  var armLen=1.20,armW=0.065,armH=0.02;
+
+  var arm1=new THREE.Mesh(new THREE.BoxGeometry(armLen,armH,armW),carbon);
+  arm1.rotation.y=Math.PI/4;
+  arm1.castShadow=true;
+  frameG.add(arm1);
+
+  var arm2=new THREE.Mesh(new THREE.BoxGeometry(armLen,armH,armW),carbon);
+  arm2.rotation.y=-Math.PI/4;
+  arm2.castShadow=true;
+  frameG.add(arm2);
+
+  // Arm edge bevels (subtle 45° chamfer strips)
+  [Math.PI/4,-Math.PI/4].forEach(function(rot){
+    [-1,1].forEach(function(side){
+      var bevel=new THREE.Mesh(new THREE.BoxGeometry(armLen,0.006,0.008),carbon);
+      bevel.rotation.y=rot;
+      bevel.position.y=side*0.011;
+      frameG.add(bevel);
+    });
   });
 
-  // Center plate — thicker reinforced area with mounting holes
-  var centerGeo=roundedBoxGeo(0.24,0.24,0.028,0.02,2);
-  var center=new THREE.Mesh(centerGeo,carbonPol);
-  center.rotation.x=Math.PI/2;
+  // Center plate — reinforced
+  var center=new THREE.Mesh(new THREE.BoxGeometry(0.22,0.025,0.22),carbon);
   center.position.y=0.002;
   center.castShadow=true;
   frameG.add(center);
 
-  // Mounting holes in center plate
-  [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(function(s){
-    var hole=new THREE.Mesh(new THREE.CylinderGeometry(0.009,0.009,0.03,12),new THREE.MeshStandardMaterial({color:0x050505,metalness:0,roughness:1}));
-    hole.position.set(s[0]*0.09,0.002,s[1]*0.09);
-    frameG.add(hole);
+  // Center plate screw holes (visual detail)
+  [[-0.08,-0.08],[0.08,-0.08],[-0.08,0.08],[0.08,0.08]].forEach(function(p){
+    var screw=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.004,8),alum);
+    screw.position.set(p[0],0.016,p[1]);
+    frameG.add(screw);
+    // Phillips head indent
+    var indent=new THREE.Mesh(new THREE.BoxGeometry(0.008,0.001,0.001),new THREE.MeshStandardMaterial({color:0x444444,metalness:0.9,roughness:0.2}));
+    indent.position.set(p[0],0.019,p[1]);
+    frameG.add(indent);
+    var indent2=indent.clone();
+    indent2.rotation.y=Math.PI/2;
+    indent2.position.set(p[0],0.019,p[1]);
+    frameG.add(indent2);
   });
 
   // Small top plate over the electronics stack
-  var topPGeo=roundedBoxGeo(0.22,0.20,0.016,0.015,2);
-  var topP=new THREE.Mesh(topPGeo,carbonPol);
-  topP.rotation.x=Math.PI/2;
-  topP.position.y=0.084;
+  var topP=new THREE.Mesh(new THREE.BoxGeometry(0.20,0.015,0.18),carbonPol);
+  topP.position.y=0.082;
   topP.castShadow=true;
   frameG.add(topP);
 
-  // Standoffs (hex)
+  // Standoffs (detailed M3 hex standoffs)
   var soP=[[1,1],[1,-1],[-1,1],[-1,-1]];
   soP.forEach(function(s){
-    var so=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,0.058,6),alumBrushed);
-    so.position.set(s[0]*0.072,0.042,s[1]*0.068);
+    var so=new THREE.Mesh(new THREE.CylinderGeometry(0.011,0.011,0.058,6),alum);
+    so.position.set(s[0]*0.07,0.042,s[1]*0.065);
     so.castShadow=true;
     frameG.add(so);
-    // Tiny hex screw heads top & bottom
-    var screw=new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.004,6),alumAn);
-    screw.position.set(s[0]*0.072,0.073,s[1]*0.068);
-    frameG.add(screw);
-    var screwB=new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.004,6),alumAn);
-    screwB.position.set(s[0]*0.072,0.012,s[1]*0.068);
-    frameG.add(screwB);
+    // Hex nut top and bottom
+    var nut=new THREE.Mesh(new THREE.CylinderGeometry(0.013,0.013,0.004,6),alum);
+    nut.position.set(s[0]*0.07,0.072,s[1]*0.065);
+    frameG.add(nut);
   });
 
-  // Camera mount side plates — angled uprights
+  // Camera mount plates (side uprights)
   [-1,1].forEach(function(s){
-    var pl=new THREE.Mesh(new THREE.BoxGeometry(0.016,0.065,0.048),carbon);
-    pl.position.set(s*0.088,0.028,0.185);
+    var pl=new THREE.Mesh(new THREE.BoxGeometry(0.015,0.06,0.045),carbon);
+    pl.position.set(s*0.085,0.025,0.18);
     pl.castShadow=true;
     frameG.add(pl);
   });
   // Camera top bar
-  frameG.add(new THREE.Mesh(new THREE.BoxGeometry(0.195,0.012,0.016),carbon).translateY(0.058).translateZ(0.20));
+  var cbar=new THREE.Mesh(new THREE.BoxGeometry(0.19,0.01,0.015),carbon);
+  cbar.position.set(0,0.055,0.20);
+  frameG.add(cbar);
 
-  // ══════ PROP GUARD DUCTS (realistic) ══════
+  // ══════ PROP GUARD DUCTS (Enhanced) ══════
   MP.forEach(function(mp){
-    // Main cylindrical duct wall — thicker, with inner lip
-    var wallGeo=new THREE.CylinderGeometry(ductR+0.018,ductR+0.016,0.055,48,1,true);
+    // Cylindrical duct wall — thicker with internal lip
+    var wallGeo=new THREE.CylinderGeometry(ductR+0.015,ductR+0.015,0.05,48,1,true);
     var wall=new THREE.Mesh(wallGeo,ductPlastic);
-    wall.position.set(mp.x,0.018,mp.z);
+    wall.position.set(mp.x,0.015,mp.z);
     wall.castShadow=true;
     frameG.add(wall);
 
-    // Inner wall (slightly smaller, creates thickness appearance)
+    // Inner lip (slightly smaller radius)
     var innerWall=new THREE.Mesh(
-      new THREE.CylinderGeometry(ductR+0.008,ductR+0.006,0.054,48,1,true),
-      mat(0x0d0d0d,0.05,0.7)
+      new THREE.CylinderGeometry(ductR+0.005,ductR+0.005,0.045,48,1,true),
+      ductPlastic
     );
-    innerWall.position.set(mp.x,0.018,mp.z);
+    innerWall.position.set(mp.x,0.017,mp.z);
     frameG.add(innerWall);
 
-    // Top lip ring (rounded torus)
-    var topRing=new THREE.Mesh(new THREE.TorusGeometry(ductR+0.014,0.009,8,48),ductPlastic);
-    topRing.position.set(mp.x,0.045,mp.z);
+    // Top ring
+    var topRing=new THREE.Mesh(new THREE.TorusGeometry(ductR+0.012,0.008,8,48),ductPlastic);
+    topRing.position.set(mp.x,0.04,mp.z);
     topRing.rotation.x=Math.PI/2;
     topRing.castShadow=true;
     frameG.add(topRing);
 
-    // Bottom lip ring
-    var botRing=new THREE.Mesh(new THREE.TorusGeometry(ductR+0.014,0.009,8,48),ductPlastic);
-    botRing.position.set(mp.x,-0.008,mp.z);
+    // Bottom ring
+    var botRing=new THREE.Mesh(new THREE.TorusGeometry(ductR+0.012,0.008,8,48),ductPlastic);
+    botRing.position.set(mp.x,-0.01,mp.z);
     botRing.rotation.x=Math.PI/2;
     frameG.add(botRing);
 
-    // Structural support ribs inside duct (4 per duct, like real cinewhoops)
-    for(var rib=0;rib<4;rib++){
-      var ribAngle=rib*Math.PI/2+Math.PI/4;
-      var ribMesh=new THREE.Mesh(new THREE.BoxGeometry(ductR*2+0.02,0.008,0.012),carbon);
-      ribMesh.position.set(mp.x,0.002,mp.z);
-      ribMesh.rotation.y=ribAngle;
-      frameG.add(ribMesh);
-    }
+    // Motor mount crossbar inside duct
+    var cross=new THREE.Mesh(new THREE.BoxGeometry(ductR*1.8,0.012,0.025),carbon);
+    cross.position.set(mp.x,0,mp.z);
+    cross.rotation.y=Math.atan2(mp.x,mp.z);
+    cross.castShadow=true;
+    frameG.add(cross);
 
-    // Motor mount cross inside duct
-    var cross1=new THREE.Mesh(new THREE.BoxGeometry(ductR*1.9,0.014,0.028),carbon);
-    cross1.position.set(mp.x,0.001,mp.z);
-    cross1.rotation.y=Math.atan2(mp.x,mp.z);
-    cross1.castShadow=true;
-    frameG.add(cross1);
-
-    // Perpendicular cross
-    var cross2=new THREE.Mesh(new THREE.BoxGeometry(ductR*1.4,0.014,0.022),carbon);
-    cross2.position.set(mp.x,0.001,mp.z);
+    // Secondary cross brace (perpendicular, thinner)
+    var cross2=new THREE.Mesh(new THREE.BoxGeometry(ductR*1.4,0.008,0.015),carbon);
+    cross2.position.set(mp.x,0.002,mp.z);
     cross2.rotation.y=Math.atan2(mp.x,mp.z)+Math.PI/2;
     frameG.add(cross2);
   });
 
   drone.add(frameG);
 
-  // ══════ LED STRIPS around duct bottoms (with point lights!) ══════
+  // ══════ LED STRIPS — Enhanced glow ══════
   MP.forEach(function(mp,mi){
     var n=48;
     for(var i=0;i<n;i++){
@@ -1214,12 +1576,15 @@ function buildModel(){
       col.setHSL(hue,1.0,0.5);
       var ledM=new THREE.MeshStandardMaterial({
         color:col,emissive:col,emissiveIntensity:1.2,
-        metalness:0.05,roughness:0.4
+        metalness:0.1,roughness:0.4,
+        transparent:true,opacity:0.95
       });
       var led=new THREE.Mesh(new THREE.BoxGeometry(0.008,0.005,0.005),ledM);
-      var lx=mp.x+Math.cos(a)*(ductR+0.019);
-      var lz=mp.z+Math.sin(a)*(ductR+0.019);
-      led.position.set(lx,-0.005,lz);
+      led.position.set(
+        mp.x+Math.cos(a)*(ductR+0.018),
+        -0.006,
+        mp.z+Math.sin(a)*(ductR+0.018)
+      );
       led.rotation.y=-a;
       led.userData.li=i;
       led.userData.mi=mi;
@@ -1227,143 +1592,103 @@ function buildModel(){
       ledArr.push(led);
       drone.add(led);
     }
-    // Per-motor point light for LED glow
-    var pl=new THREE.PointLight(0xff0000,0.3,0.5);
-    pl.position.set(mp.x,-0.02,mp.z);
-    ledLights.push(pl);
-    drone.add(pl);
+    // Add a glow ring (transparent, additive)
+    var glowRing=new THREE.Mesh(
+      new THREE.TorusGeometry(ductR+0.018,0.012,6,48),
+      new THREE.MeshBasicMaterial({
+        color:0x00ffff,transparent:true,opacity:0.06,
+        side:THREE.DoubleSide,depthWrite:false,
+        blending:THREE.AdditiveBlending
+      })
+    );
+    glowRing.position.set(mp.x,-0.006,mp.z);
+    glowRing.rotation.x=Math.PI/2;
+    glowRing.userData.isGlow=true;
+    glowRing.userData.mi=mi;
+    ledArr.push(glowRing);
+    drone.add(glowRing);
   });
 
-  // ══════ ESC — detailed 4-in-1 board ══════
+  // ══════ ESC ══════
   var escG=new THREE.Group();
   parts.esc=escG;
-  // PCB with rounded corners
-  var escPCBGeo=roundedBoxGeo(0.20,0.20,0.016,0.01,2);
-  var escPCB=new THREE.Mesh(escPCBGeo,escDarkPCB);
-  escPCB.rotation.x=Math.PI/2;
+  var escPCB=new THREE.Mesh(new THREE.BoxGeometry(0.19,0.014,0.19),escDark);
   escPCB.position.y=0.018;
+  escPCB.castShadow=true;
   escG.add(escPCB);
-  // Copper traces (PCB traces visible)
-  for(var tr=0;tr<6;tr++){
-    var traceA=tr*Math.PI/3+0.2;
-    var traceMesh=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.001,0.003),tinPad);
-    traceMesh.position.set(Math.cos(traceA)*0.05,0.027,Math.sin(traceA)*0.05);
-    traceMesh.rotation.y=traceA;
-    escG.add(traceMesh);
-  }
-  // MOSFETs (8 around the board)
+  // MOSFETs with thermal pad detail
   for(var i=0;i<8;i++){
     var a=i*Math.PI/4+Math.PI/8;
-    var f=new THREE.Mesh(new THREE.BoxGeometry(0.03,0.012,0.018),chipM);
-    f.position.set(Math.cos(a)*0.068,0.028,Math.sin(a)*0.068);
+    var f=new THREE.Mesh(new THREE.BoxGeometry(0.028,0.01,0.016),chipM);
+    f.position.set(Math.cos(a)*0.065,0.028,Math.sin(a)*0.065);
     f.rotation.y=-a;
-    f.castShadow=true;
     escG.add(f);
-    // Solder pads under MOSFETs
-    var pad=new THREE.Mesh(new THREE.BoxGeometry(0.032,0.001,0.02),tinPad);
-    pad.position.set(Math.cos(a)*0.068,0.026,Math.sin(a)*0.068);
+    // Solder pads
+    var pad=new THREE.Mesh(new THREE.BoxGeometry(0.032,0.002,0.02),new THREE.MeshStandardMaterial({color:0x776633,metalness:0.7,roughness:0.3,envMap:envMap}));
+    pad.position.set(Math.cos(a)*0.065,0.024,Math.sin(a)*0.065);
     pad.rotation.y=-a;
     escG.add(pad);
   }
-  // Capacitors (2 larger electrolytics)
-  [-1,1].forEach(function(s){
-    var cap=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,0.02,10),mat(0x222222,0.3,0.5));
-    cap.position.set(s*0.06,0.032,0);
-    escG.add(cap);
-    // Silver top marking
-    var capTop=new THREE.Mesh(new THREE.CylinderGeometry(0.011,0.011,0.002,10),alumBrushed);
-    capTop.position.set(s*0.06,0.043,0);
-    escG.add(capTop);
-  });
-  // Current shunt resistors
-  for(var sr=0;sr<4;sr++){
-    var sra=sr*Math.PI/2+Math.PI/4;
-    escG.add(new THREE.Mesh(new THREE.BoxGeometry(0.015,0.004,0.008),mat(0x050505,0.6,0.2))
-      .translateX(Math.cos(sra)*0.085).translateY(0.028).translateZ(Math.sin(sra)*0.085));
-  }
-  // Conformal coating sheen
-  var escCoat=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.001,0.18),confCoat);
-  escCoat.position.y=0.029;
-  escG.add(escCoat);
+  // Capacitors
+  var capMat=new THREE.MeshStandardMaterial({color:0x222222,metalness:0.3,roughness:0.6,envMap:envMap,envMapIntensity:0.3});
+  var cap1=new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,0.02,12),capMat);
+  cap1.position.set(0.04,0.03,0.04);
+  escG.add(cap1);
+  var cap2=cap1.clone();
+  cap2.position.set(-0.04,0.03,-0.04);
+  escG.add(cap2);
   drone.add(escG);
 
-  // ══════ FC — detailed flight controller ══════
+  // ══════ FC (Enhanced PCB detail) ══════
   var fcG=new THREE.Group();
   parts.fc=fcG;
-  // PCB (slightly green-tinted like real PCBs, rounded)
-  var fcPCBGeo=roundedBoxGeo(0.20,0.20,0.016,0.01,2);
-  var fcPCB=new THREE.Mesh(fcPCBGeo,fcGreen);
-  fcPCB.rotation.x=Math.PI/2;
+  var fcPCB=new THREE.Mesh(new THREE.BoxGeometry(0.19,0.014,0.19),fcYellow);
   fcPCB.position.y=0.052;
+  fcPCB.castShadow=true;
   fcG.add(fcPCB);
-  // Copper ground plane visible
-  var gndPlane=new THREE.Mesh(new THREE.BoxGeometry(0.17,0.001,0.17),mat(0x886633,0.7,0.3,{transparent:true,opacity:0.15}));
-  gndPlane.position.y=0.061;
-  fcG.add(gndPlane);
-  // Gyro (BMI270 — QFN package)
-  var gyro=new THREE.Mesh(new THREE.BoxGeometry(0.018,0.005,0.018),chipQFP);
+  // Gyro chip (BMI270)
+  var gyro=new THREE.Mesh(new THREE.BoxGeometry(0.035,0.008,0.035),chipM);
   gyro.position.y=0.063;
   fcG.add(gyro);
   // Gyro marking dot
-  fcG.add(new THREE.Mesh(new THREE.CylinderGeometry(0.002,0.002,0.001,6),whiteM).translateY(0.066).translateX(-0.005).translateZ(-0.005));
-  // Main MCU (STM32 F405 — LQFP100)
-  var mcu=new THREE.Mesh(new THREE.BoxGeometry(0.028,0.005,0.028),chipQFP);
-  mcu.position.set(-0.04,0.063,0.04);
-  fcG.add(mcu);
-  // MCU leads (tiny legs around package)
-  for(var side=0;side<4;side++){
-    for(var pin=0;pin<8;pin++){
-      var pinMesh=new THREE.Mesh(new THREE.BoxGeometry(0.003,0.001,0.001),tinPad);
-      var px,pz;
-      if(side===0){px=-0.04-0.016;pz=0.04-0.012+pin*0.003;}
-      else if(side===1){px=-0.04+0.016;pz=0.04-0.012+pin*0.003;}
-      else if(side===2){px=-0.04-0.012+pin*0.003;pz=0.04-0.016;}
-      else{px=-0.04-0.012+pin*0.003;pz=0.04+0.016;}
-      pinMesh.position.set(px,0.061,pz);
-      if(side>=2)pinMesh.rotation.y=Math.PI/2;
-      fcG.add(pinMesh);
-    }
-  }
-  // OSD chip
-  fcG.add(new THREE.Mesh(new THREE.BoxGeometry(0.014,0.004,0.014),chipM).translateX(0.04).translateY(0.063).translateZ(-0.03));
-  // Flash chip
-  fcG.add(new THREE.Mesh(new THREE.BoxGeometry(0.012,0.003,0.008),chipM).translateX(0.05).translateY(0.063).translateZ(0.04));
-  // USB-C port (more detailed)
-  var usbBody=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.015,0.02),alumAn);
-  usbBody.position.set(0.12,0.052,0);
+  fcG.add(new THREE.Mesh(
+    new THREE.SphereGeometry(0.003,6,4),
+    new THREE.MeshStandardMaterial({color:0xffffff,metalness:0,roughness:0.8})
+  ).translateY(0.068));
+  // Processor (STM32)
+  var proc=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.006,0.04),chipM);
+  proc.position.set(-0.04,0.063,0.04);
+  fcG.add(proc);
+  // USB-C (more detailed)
+  var usbBody=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.016,0.022),alumAn);
+  usbBody.position.set(0.115,0.052,0);
   fcG.add(usbBody);
-  var usbSlot=new THREE.Mesh(new THREE.BoxGeometry(0.01,0.006,0.014),mat(0x020202,0,1));
-  usbSlot.position.set(0.125,0.052,0);
-  fcG.add(usbSlot);
-  // Boot button
-  var bootBtn=new THREE.Mesh(new THREE.CylinderGeometry(0.005,0.005,0.006,8),mat(0xcccccc,0.5,0.4));
-  bootBtn.position.set(-0.09,0.063,0);
-  fcG.add(bootBtn);
-  // Status LED (green)
-  var sLED=new THREE.Mesh(new THREE.BoxGeometry(0.006,0.003,0.006),mat(0x00ff44,0,1,{emissive:0x00ff44,emissiveIntensity:2.0}));
-  sLED.position.set(-0.07,0.063,-0.05);
-  fcG.add(sLED);
-  // Second LED (blue, activity)
-  var bLED=new THREE.Mesh(new THREE.BoxGeometry(0.006,0.003,0.006),mat(0x0044ff,0,1,{emissive:0x0044ff,emissiveIntensity:1.5}));
-  bLED.position.set(-0.07,0.063,-0.06);
-  fcG.add(bLED);
-  // Solder pads on edges (where motor wires connect)
-  for(var ep=0;ep<12;ep++){
-    var epa=ep*Math.PI*2/12;
-    fcG.add(new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.002,6),tinPad)
-      .translateX(Math.cos(epa)*0.09).translateY(0.061).translateZ(Math.sin(epa)*0.09));
+  var usbPort=new THREE.Mesh(new THREE.BoxGeometry(0.005,0.01,0.016),new THREE.MeshStandardMaterial({color:0x040404,metalness:0.9,roughness:0.1,envMap:envMap}));
+  usbPort.position.set(0.138,0.052,0);
+  fcG.add(usbPort);
+  // Status LED
+  var ledI=new THREE.Mesh(
+    new THREE.BoxGeometry(0.008,0.004,0.008),
+    new THREE.MeshStandardMaterial({color:0x00ff44,emissive:0x00ff44,emissiveIntensity:2.5,metalness:0,roughness:1})
+  );
+  ledI.position.set(-0.07,0.063,-0.05);
+  fcG.add(ledI);
+  // Solder pads around edges
+  for(var i=0;i<12;i++){
+    var padX=-0.08+i*0.014;
+    var sp=new THREE.Mesh(new THREE.BoxGeometry(0.008,0.002,0.012),goldM);
+    sp.position.set(padX,0.06,-0.09);
+    fcG.add(sp);
+    var sp2=sp.clone();
+    sp2.position.set(padX,0.06,0.09);
+    fcG.add(sp2);
   }
-  // Conformal coating
-  var fcCoat=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.001,0.18),confCoat);
-  fcCoat.position.y=0.064;
-  fcG.add(fcCoat);
   drone.add(fcG);
 
-  // ══════ MOTOR WIRES — 3 silicone wires per motor ══════
+  // ══════ MOTOR WIRES ══════
   MP.forEach(function(mp){
     var colors=[siliconeR,siliconeB,siliconeY];
     var armAngle=Math.atan2(mp.x,mp.z);
-
     colors.forEach(function(wireMat,wi){
       var segments=16;
       var pts=[];
@@ -1371,270 +1696,238 @@ function buildModel(){
         var t=s/segments;
         var wx=mp.x*(1-t);
         var wz=mp.z*(1-t);
-        var offset=(wi-1)*0.007;
+        var offset=(wi-1)*0.008;
         var perpX=-Math.sin(armAngle)*offset;
         var perpZ=Math.cos(armAngle)*offset;
-        // Natural wire droop
-        var wy=-0.006+Math.sin(t*Math.PI)*0.009-Math.sin(t*Math.PI*0.5)*0.003;
+        var wy=-0.005+Math.sin(t*Math.PI)*0.01;
         pts.push(new THREE.Vector3(wx+perpX,wy,wz+perpZ));
       }
       var curve=new THREE.CatmullRomCurve3(pts);
-      var tubeGeo=new THREE.TubeGeometry(curve,20,0.0022,5,false);
+      var tubeGeo=new THREE.TubeGeometry(curve,20,0.003,5,false);
       var wire=new THREE.Mesh(tubeGeo,wireMat);
       wire.castShadow=true;
       drone.add(wire);
     });
   });
 
-  // ══════ MOTORS — highly detailed ══════
+  // ══════ MOTORS (Enhanced detail) ══════
   var motorG=new THREE.Group();
   parts.motors=motorG;
   MP.forEach(function(mp){
     var mg=new THREE.Group();
-
-    // Motor base mount (screwed to frame)
-    mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.024,0.008,12),alumAn).translateY(0.004));
-
-    // Stator core (laminated steel)
-    var statorMat=mat(0x3a3a3a,0.7,0.2);
-    mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.044,0.044,0.032,24),statorMat).translateY(0.026));
-
-    // Stator teeth and copper windings (12 teeth, 12N14P)
+    // Base mount plate
+    mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.005,18),alumAn).translateY(0.005));
+    // Stator core
+    mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045,0.035,24),alumAn).translateY(0.028));
+    // Teeth + copper windings (more detail)
     for(var t=0;t<12;t++){
       var ta=t*Math.PI/6;
-      var cx=Math.cos(ta)*0.037,cz=Math.sin(ta)*0.037;
-      // Tooth
-      mg.add(new THREE.Mesh(new THREE.BoxGeometry(0.01,0.028,0.016),statorMat).translateX(cx).translateY(0.026).translateZ(cz));
-      // Copper winding around tooth
+      var cx=Math.cos(ta)*0.038,cz=Math.sin(ta)*0.038;
+      mg.add(new THREE.Mesh(new THREE.BoxGeometry(0.009,0.028,0.015),alumAn).translateX(cx).translateY(0.028).translateZ(cz));
       var w=new THREE.Mesh(new THREE.TorusGeometry(0.008,0.0035,5,8),copperW);
-      w.position.set(cx,0.026,cz);
+      w.position.set(cx,0.028,cz);
       w.rotation.x=Math.PI/2;
       w.rotation.z=ta;
       mg.add(w);
     }
-
-    // Bell housing (the outer rotating part)
-    mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.054,0.050,0.022,24),bellGray).translateY(0.054));
-    mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.046,0.054,0.007,24),bellGray).translateY(0.067));
+    // Bell housing (two-piece with gap)
+    mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.054,0.050,0.018,24),bellGray).translateY(0.056));
+    mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.046,0.054,0.005,24),bellGray).translateY(0.069));
     // Bell top cap
-    mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.048,0.046,0.003,24),mat(0x4a4a4a,0.85,0.08)).translateY(0.072));
-
-    // Magnets visible through bell gaps (dark segments)
-    for(var m=0;m<14;m++){
-      var ma=m*Math.PI*2/14;
-      var magnet=new THREE.Mesh(new THREE.BoxGeometry(0.003,0.018,0.012),mat(0x1a1a1a,0.6,0.3));
-      magnet.position.set(Math.cos(ma)*0.049,0.054,Math.sin(ma)*0.049);
-      magnet.rotation.y=-ma;
-      mg.add(magnet);
-    }
-
+    mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.042,0.046,0.003,24),bellGray).translateY(0.073));
     // Shaft
-    mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.0035,0.0035,0.025,8),alum).translateY(0.085));
-    // C-clip on shaft
-    mg.add(new THREE.Mesh(new THREE.TorusGeometry(0.006,0.0015,4,12),alumAn).translateY(0.09).rotateX(Math.PI/2));
-
-    // Motor mounting screws (4 per motor)
+    mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.022,10),alum).translateY(0.082));
+    // Magnets visible inside bell (dark ring)
+    mg.add(new THREE.Mesh(
+      new THREE.CylinderGeometry(0.048,0.048,0.016,24,1,true),
+      new THREE.MeshStandardMaterial({color:0x222222,metalness:0.6,roughness:0.4,side:THREE.BackSide,envMap:envMap,envMapIntensity:0.3})
+    ).translateY(0.056));
+    // Motor screws (4 screws at base)
     for(var ms=0;ms<4;ms++){
-      var msa=ms*Math.PI/2+Math.PI/4;
-      mg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.006,6),mat(0x333333,0.8,0.15))
-        .translateX(Math.cos(msa)*0.018).translateY(0.002).translateZ(Math.sin(msa)*0.018));
+      var sa=ms*Math.PI/2+Math.PI/4;
+      var screw=new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.003,6),alum);
+      screw.position.set(Math.cos(sa)*0.035,0.003,Math.sin(sa)*0.035);
+      mg.add(screw);
     }
-
     mg.position.set(mp.x,0.01,mp.z);
     mg.castShadow=true;
     motorG.add(mg);
   });
   drone.add(motorG);
 
-  // ══════ PROPELLERS — realistic airfoil shape ══════
+  // ══════ PROPS (Realistic curved blades) ══════
   var propG=new THREE.Group();
   parts.props=propG;
-
-  function createBlade(length,width,cw){
-    var bladeShape=new THREE.Shape();
-    // Teardrop/airfoil cross section
-    bladeShape.moveTo(0,-width*0.15);
-    bladeShape.quadraticCurveTo(length*0.15,-width*0.5,length*0.4,-width*0.48);
-    bladeShape.quadraticCurveTo(length*0.7,-width*0.35,length*0.92,-width*0.12);
-    bladeShape.quadraticCurveTo(length,0,length*0.92,width*0.08);
-    bladeShape.quadraticCurveTo(length*0.7,width*0.2,length*0.4,width*0.28);
-    bladeShape.quadraticCurveTo(length*0.15,width*0.3,0,width*0.15);
-    bladeShape.closePath();
-    var extSettings={depth:0.0025,bevelEnabled:true,bevelThickness:0.001,bevelSize:0.001,bevelSegments:2};
-    var geo=new THREE.ExtrudeGeometry(bladeShape,extSettings);
-    geo.translate(0,0,-0.00125);
-    if(!cw){geo.scale(-1,1,1);}
-    return geo;
-  }
-
-  MP.forEach(function(mp){
+  MP.forEach(function(mp,mi){
     var pg=new THREE.Group();
-    // Prop hub
-    pg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.009,0.009,0.008,12),propMat));
-    // Nut on top
-    pg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.004,6),alumAn).translateY(0.005));
+    // Hub
+    pg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.009,0.009,0.006,10),alum));
+    // Hub cap detail
+    pg.add(new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.002,8),bellGray).translateY(0.004));
 
     for(var b=0;b<3;b++){
-      var bladeGeo=createBlade(0.19,0.03,mp.cw);
-      var blade=new THREE.Mesh(bladeGeo,propMatTrans);
+      // Create curved blade using a custom shape
+      var bladeShape=new THREE.Shape();
+      bladeShape.moveTo(0,0);
+      bladeShape.quadraticCurveTo(0.06,0.018,0.18,0.008);
+      bladeShape.lineTo(0.185,0.003);
+      bladeShape.quadraticCurveTo(0.06,-0.01,0,-0.005);
+      bladeShape.closePath();
+
+      var extrudeSettings={depth:0.0025,bevelEnabled:true,bevelThickness:0.0008,bevelSize:0.001,bevelSegments:1};
+      var bladeGeo=new THREE.ExtrudeGeometry(bladeShape,extrudeSettings);
+      var blade=new THREE.Mesh(bladeGeo,propDark);
       blade.rotation.x=-Math.PI/2;
-      // Slight pitch twist
-      blade.rotation.z=0.08;
+      blade.position.y=0.001;
       blade.castShadow=true;
+
       var bGroup=new THREE.Group();
       bGroup.add(blade);
       bGroup.rotation.y=b*Math.PI*2/3;
       pg.add(bGroup);
     }
-    pg.position.set(mp.x,0.098,mp.z);
+    pg.position.set(mp.x,0.095,mp.z);
     propSpin.push(pg);
     propG.add(pg);
   });
   drone.add(propG);
 
-  // ══════ CAMERA MODULE — detailed FPV camera ══════
+  // ══════ CAMERA (Enhanced optics) ══════
   var camG=new THREE.Group();
   parts.camera=camG;
-  // Camera body (rounded)
-  var camBodyGeo=roundedBoxGeo(0.062,0.062,0.045,0.006,2);
-  var camBody=new THREE.Mesh(camBodyGeo,camYellow);
-  camBody.rotation.y=Math.PI/2;
-  camG.add(camBody);
-  // Front face plate
-  camG.add(new THREE.Mesh(new THREE.BoxGeometry(0.066,0.066,0.004),camBlack).translateZ(0.024));
-  // Lens barrel (multi-element)
-  var barrel1=new THREE.Mesh(new THREE.CylinderGeometry(0.023,0.020,0.018,16),mat(0x111111,0.85,0.08));
-  barrel1.rotation.x=Math.PI/2; barrel1.position.z=0.034;
-  camG.add(barrel1);
-  var barrel2=new THREE.Mesh(new THREE.CylinderGeometry(0.020,0.018,0.014,16),mat(0x0a0a0a,0.88,0.06));
-  barrel2.rotation.x=Math.PI/2; barrel2.position.z=0.044;
-  camG.add(barrel2);
-  // Front glass element with coating reflection
-  var glass=new THREE.Mesh(new THREE.SphereGeometry(0.017,16,10,0,Math.PI*2,0,Math.PI*0.3),lensGls);
-  glass.rotation.x=-Math.PI/2; glass.position.z=0.052;
+  // Housing
+  camG.add(new THREE.Mesh(new THREE.BoxGeometry(0.065,0.065,0.048),camYellow));
+  // Front plate
+  camG.add(new THREE.Mesh(new THREE.BoxGeometry(0.068,0.068,0.008),camBlack).translateZ(0.025));
+  // Lens barrel (multi-element look)
+  var barrel=new THREE.Mesh(new THREE.CylinderGeometry(0.024,0.020,0.035,18),new THREE.MeshStandardMaterial({
+    color:0x1a1a1a,metalness:0.88,roughness:0.08,envMap:envMap,envMapIntensity:1.0
+  }));
+  barrel.rotation.x=Math.PI/2;
+  barrel.position.z=0.042;
+  camG.add(barrel);
+  // Lens ring (chrome detail)
+  var lensRing=new THREE.Mesh(new THREE.TorusGeometry(0.022,0.002,8,18),alum);
+  lensRing.position.z=0.044;
+  camG.add(lensRing);
+  // Glass lens element
+  var glass=new THREE.Mesh(new THREE.SphereGeometry(0.019,18,10,0,Math.PI*2,0,Math.PI*0.35),lensGls);
+  glass.rotation.x=-Math.PI/2;
+  glass.position.z=0.058;
   camG.add(glass);
-  // Lens coating shimmer
-  var coating=new THREE.Mesh(new THREE.SphereGeometry(0.0175,16,10,0,Math.PI*2,0,Math.PI*0.28),lensCoat);
-  coating.rotation.x=-Math.PI/2; coating.position.z=0.053;
-  camG.add(coating);
-  // Rear connector
-  camG.add(new THREE.Mesh(new THREE.BoxGeometry(0.03,0.012,0.008),whiteM).translateZ(-0.025));
-  // Tilt mount screws
-  [-1,1].forEach(function(s){
-    camG.add(new THREE.Mesh(new THREE.CylinderGeometry(0.003,0.003,0.004,6),alumAn)
-      .translateX(s*0.035).translateZ(0.015).rotateZ(Math.PI/2));
-  });
-  camG.position.set(0,0.032,0.175);
+  // Lens flare dot (tiny bright highlight)
+  var flare=new THREE.Mesh(
+    new THREE.SphereGeometry(0.004,8,6),
+    new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.4})
+  );
+  flare.position.set(0.005,0.005,0.06);
+  camG.add(flare);
+  // Sensor board visible through housing
+  var sensor=new THREE.Mesh(new THREE.BoxGeometry(0.03,0.03,0.002),new THREE.MeshStandardMaterial({
+    color:0x115511,metalness:0.3,roughness:0.5,envMap:envMap
+  }));
+  sensor.position.z=-0.022;
+  camG.add(sensor);
+
+  camG.position.set(0,0.03,0.17);
   camG.rotation.x=-0.45;
+  camG.castShadow=true;
   drone.add(camG);
 
-  // ══════ VTX + ANTENNA — detailed ══════
+  // ══════ VTX + antenna ══════
   var vtxG=new THREE.Group();
   parts.vtx=vtxG;
-  // VTX PCB
-  vtxG.add(new THREE.Mesh(new THREE.BoxGeometry(0.14,0.01,0.10),vtxDark).translateY(0.096));
-  // Heatsink on VTX
-  for(var fin=0;fin<6;fin++){
-    vtxG.add(new THREE.Mesh(new THREE.BoxGeometry(0.04,0.008,0.002),alumBrushed)
-      .translateY(0.105).translateX(0.01).translateZ(-0.03+fin*0.013));
+  vtxG.add(new THREE.Mesh(new THREE.BoxGeometry(0.14,0.009,0.10),vtxDark).translateY(0.095));
+  // Heat sink fins on VTX
+  for(var hs=0;hs<6;hs++){
+    vtxG.add(new THREE.Mesh(
+      new THREE.BoxGeometry(0.005,0.014,0.08),alumAn
+    ).translateY(0.098).translateX(-0.05+hs*0.02));
   }
-  // RF shield can
-  vtxG.add(new THREE.Mesh(new THREE.BoxGeometry(0.055,0.012,0.055),alumAn).translateY(0.106).translateZ(0.012));
-  // SMA/MMCX connector
-  vtxG.add(new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.018,8),goldM).translateY(0.096).translateZ(-0.14));
-  vtxG.add(new THREE.Mesh(new THREE.CylinderGeometry(0.005,0.005,0.004,8),mat(0xffffff,0.5,0.3)).translateY(0.106).translateZ(-0.14));
-  // Antenna mast
-  var mast=new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.003,0.26,8),antDark);
-  mast.position.set(0,0.235,-0.14);
+  vtxG.add(new THREE.Mesh(new THREE.BoxGeometry(0.06,0.01,0.06),alumAn).translateY(0.105).translateZ(0.01));
+  // SMA connector (gold)
+  vtxG.add(new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.015,10),goldM).translateY(0.095).translateZ(-0.14));
+  var mast=new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.003,0.25,8),antDark);
+  mast.position.set(0,0.23,-0.14);
   vtxG.add(mast);
-  // Dipole antenna tip
-  vtxG.add(new THREE.Mesh(new THREE.CylinderGeometry(0.007,0.005,0.035,8),antDark).translateY(0.37).translateZ(-0.14));
-  vtxG.add(new THREE.Mesh(new THREE.SphereGeometry(0.009,10,8),antDark).translateY(0.39).translateZ(-0.14));
+  // Antenna tip elements
+  vtxG.add(new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.004,0.03,8),antDark).translateY(0.36).translateZ(-0.14));
+  vtxG.add(new THREE.Mesh(new THREE.SphereGeometry(0.009,10,8),antDark).translateY(0.38).translateZ(-0.14));
   drone.add(vtxG);
 
-  // ══════ BATTERY — detailed LiPo pack ══════
+  // ══════ BATTERY (Enhanced detail) ══════
   var batG=new THREE.Group();
   parts.battery=batG;
-  // Main battery body with slight puffiness (rounded)
-  var batGeo=roundedBoxGeo(0.42,0.18,0.14,0.012,2);
-  var batBody=new THREE.Mesh(batGeo,batWrap);
-  batBody.rotation.x=Math.PI/2;
-  batG.add(batBody);
-  // Cell divider lines (4S = 4 cells)
+  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.42,0.14,0.18),batBlue));
+  // Cell divider lines
   for(var c=1;c<4;c++){
-    batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.001,0.145,0.185),mat(0x0a2266,0,1)).translateX(-0.16+c*0.105));
+    batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.001,0.145,0.185),new THREE.MeshStandardMaterial({color:0x112266,metalness:0,roughness:1})).translateX(-0.16+c*0.105));
   }
   // Label sticker
-  var labelGeo=roundedBoxGeo(0.22,0.08,0.001,0.003,1);
-  var label=new THREE.Mesh(labelGeo,whiteM);
-  label.rotation.y=Math.PI/2;
-  label.position.z=0.092;
-  batG.add(label);
-  // Red warning triangle on label
-  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.05,0.025,0.002),mat(0xcc2222,0.1,0.7)).translateX(0.13).translateZ(0.093).translateY(0.02));
-  // Brand text placeholder (small colored strip)
-  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.15,0.015,0.002),mat(0x0044cc,0.1,0.6)).translateX(-0.02).translateZ(0.093).translateY(-0.02));
-  // XT30 connector (yellow)
-  var xt30Body=new THREE.Mesh(new THREE.BoxGeometry(0.035,0.022,0.016),mat(0xccbb00,0.4,0.3));
-  xt30Body.position.set(0.24,0,0);
+  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.20,0.06,0.002),whiteM).translateZ(0.092));
+  // Small text on label (simulated with colored strip)
+  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.15,0.008,0.001),new THREE.MeshStandardMaterial({color:0x333333,metalness:0,roughness:0.9})).translateZ(0.0935).translateY(0.01));
+  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.12,0.005,0.001),new THREE.MeshStandardMaterial({color:0x555555,metalness:0,roughness:0.9})).translateZ(0.0935).translateY(-0.005));
+  // Red warning triangle
+  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.06,0.03,0.002),new THREE.MeshStandardMaterial({color:0xcc2222,metalness:0.1,roughness:0.7})).translateX(0.13).translateZ(0.092).translateY(0.02));
+  // XT30 connector (detailed)
+  var xt30Body=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.025,0.022),new THREE.MeshStandardMaterial({color:0xccbb00,metalness:0.5,roughness:0.3,envMap:envMap}));
+  xt30Body.position.x=0.24;
   batG.add(xt30Body);
   // XT30 pins
-  [-1,1].forEach(function(s){
-    batG.add(new THREE.Mesh(new THREE.CylinderGeometry(0.003,0.003,0.012,6),goldM).translateX(0.25).translateY(s*0.005).rotateZ(Math.PI/2));
+  [-0.004,0.004].forEach(function(z){
+    batG.add(new THREE.Mesh(new THREE.CylinderGeometry(0.002,0.002,0.015,6),goldM).translateX(0.255).translateZ(z).rotateZ(Math.PI/2));
   });
   // Power wires
-  var pwrR=new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.12,6),siliconeR);
-  pwrR.position.set(0.18,-0.10,0.015); pwrR.rotation.z=0.3;
+  var pwrR=new THREE.Mesh(new THREE.CylinderGeometry(0.005,0.005,0.12,6),siliconeR);
+  pwrR.position.set(0.18,-0.10,0.02);
+  pwrR.rotation.z=0.3;
   batG.add(pwrR);
-  var pwrK=new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.12,6),siliconeK);
-  pwrK.position.set(0.18,-0.10,-0.015); pwrK.rotation.z=0.3;
+  var pwrK=new THREE.Mesh(new THREE.CylinderGeometry(0.005,0.005,0.12,6),siliconeK);
+  pwrK.position.set(0.18,-0.10,-0.02);
+  pwrK.rotation.z=0.3;
   batG.add(pwrK);
-  // Balance lead (white JST-XH connector)
-  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.028,0.012,0.016),whiteM).translateX(-0.17).translateY(0.04).translateZ(0.06));
-  // Balance wires
-  for(var bw=0;bw<5;bw++){
-    var bwColor=[siliconeK,siliconeR,siliconeY,siliconeB,whiteM][bw];
-    var bwPts=[
-      new THREE.Vector3(-0.17,0.04,0.068),
-      new THREE.Vector3(-0.17,0.05,0.08+bw*0.004),
-      new THREE.Vector3(-0.15,0.055,0.09+bw*0.003)
-    ];
-    var bwCurve=new THREE.CatmullRomCurve3(bwPts);
-    batG.add(new THREE.Mesh(new THREE.TubeGeometry(bwCurve,6,0.0015,4,false),bwColor));
-  }
-  // Velcro strap (fabric texture)
-  var strapMat=mat(0x0a0a0a,0.01,0.98);
-  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.055,0.003,0.55),strapMat).translateY(0.073));
-  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.055,0.003,0.55),strapMat).translateY(-0.073));
+  // Balance lead
+  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.03,0.012,0.018),whiteM).translateX(-0.17).translateY(0.04).translateZ(0.06));
+  // Balance wires (tiny colored wires)
+  [0xcc2222,0x222222,0xcccc22,0x2222cc,0xcc8822].forEach(function(wc,wi){
+    var bw=new THREE.Mesh(new THREE.CylinderGeometry(0.001,0.001,0.04,3),new THREE.MeshStandardMaterial({color:wc,metalness:0,roughness:0.8}));
+    bw.position.set(-0.17+wi*0.005,0.06,0.06);
+    bw.rotation.z=0.3+wi*0.05;
+    batG.add(bw);
+  });
+  // Straps
+  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.06,0.004,0.55),rubberM).translateY(0.073));
+  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.06,0.004,0.55),rubberM).translateY(-0.073));
   [-1,1].forEach(function(s){
-    batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.055,0.15,0.003),strapMat).translateZ(s*0.275));
+    batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.06,0.15,0.004),rubberM).translateZ(s*0.275));
   });
   // Strap buckle
-  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.065,0.009,0.02),alumAn).translateY(0.076).translateZ(0.26));
+  batG.add(new THREE.Mesh(new THREE.BoxGeometry(0.07,0.008,0.018),alumAn).translateY(0.075).translateZ(0.26));
 
   batG.position.set(0,0.16,0);
   drone.add(batG);
 
-  // ══════ RX ANTENNAS — immortal-T style ══════
+  // RX antennas (thin, flexible)
   [-1,1].forEach(function(s){
-    // Antenna wire
-    var rxPts=[
-      new THREE.Vector3(s*0.03,0.09,-0.13),
-      new THREE.Vector3(s*0.04,0.14,-0.16),
-      new THREE.Vector3(s*0.06,0.22,-0.18),
-      new THREE.Vector3(s*0.055,0.28,-0.17)
-    ];
-    var rxCurve=new THREE.CatmullRomCurve3(rxPts);
-    var rxWire=new THREE.Mesh(new THREE.TubeGeometry(rxCurve,12,0.002,4,false),mat(0xaa0000,0.05,0.7));
-    drone.add(rxWire);
-    // Dipole T-element at tip
-    var tBar=new THREE.Mesh(new THREE.CylinderGeometry(0.002,0.002,0.035,4),mat(0xaa0000,0.05,0.7));
-    tBar.position.set(s*0.055,0.28,-0.17);
-    tBar.rotation.z=Math.PI/2;
-    drone.add(tBar);
-    // Heatshrink at base
-    drone.add(new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.012,6),rubberM)
-      .translateX(s*0.03).translateY(0.09).translateZ(-0.13));
+    var pts=[];
+    for(var i=0;i<=10;i++){
+      var t=i/10;
+      pts.push(new THREE.Vector3(
+        s*0.03+s*t*0.02,
+        0.14+t*0.15-t*t*0.03,
+        -0.18-t*0.05
+      ));
+    }
+    var curve=new THREE.CatmullRomCurve3(pts);
+    var rxGeo=new THREE.TubeGeometry(curve,12,0.002,4,false);
+    var rx=new THREE.Mesh(rxGeo,new THREE.MeshStandardMaterial({color:0xbb0000,metalness:0,roughness:0.7,envMap:envMap,envMapIntensity:0.15}));
+    drone.add(rx);
+    // Antenna tip
+    var tip=new THREE.Mesh(new THREE.SphereGeometry(0.004,6,4),new THREE.MeshStandardMaterial({color:0x880000,metalness:0,roughness:0.8}));
+    var lastPt=pts[pts.length-1];
+    tip.position.copy(lastPt);
+    drone.add(tip);
   });
 
   drone.position.y=0.35;
@@ -1661,7 +1954,7 @@ function buildModel(){
     e.preventDefault();
     dist*=Math.exp(e.deltaY*0.002);
     if(dist<0.4)dist=0.4;
-    if(dist>10)dist=10;
+    if(dist>8)dist=8;
     positionCam();
     spinning=false;idleTime=Date.now();
   };
@@ -1685,7 +1978,7 @@ function buildModel(){
       var d0=Math.hypot(tch[0].clientX-tch[1].clientX,tch[0].clientY-tch[1].clientY);
       var d1=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
       dist*=d0/d1;
-      if(dist<0.4)dist=0.4;if(dist>10)dist=10;
+      if(dist<0.4)dist=0.4;if(dist>8)dist=8;
     }
     tch=Array.prototype.slice.call(e.touches);
     positionCam();
@@ -1751,52 +2044,58 @@ function animateModel(){
   if(activeMode==='model3d'&&rend3d&&cam3d&&scene3d){
     var t=Date.now()*0.001;
 
-    // Auto-rotate when idle
-    if(!dragging&&(Date.now()-idleTime)>3000)spinning=true;
-    if(spinning){theta+=0.0015;positionCam();}
+    // Auto-rotate when idle (smooth)
+    if(!dragging&&(Date.now()-idleTime)>2500)spinning=true;
+    if(spinning){theta+=0.0008;positionCam();}
 
-    // Gentle hover bob
+    // Subtle hover bob
     if(drone){
-      drone.position.y=0.35+Math.sin(t*1.2)*0.008;
-      drone.rotation.x=Math.sin(t*0.8)*0.008;
-      drone.rotation.z=Math.cos(t*0.6)*0.006;
+      drone.position.y=0.35+Math.sin(t*1.2)*0.005;
+      drone.rotation.x=Math.sin(t*0.7)*0.003;
+      drone.rotation.z=Math.cos(t*0.9)*0.003;
     }
 
-    // Spin props (varying speeds for realism)
+    // Spin props (varied speeds for realism)
     for(var i=0;i<propSpin.length;i++){
       propSpin[i].rotation.y+=0.12+i*0.008;
     }
 
-    // Animate LED rainbow chase with glow
+    // Animate LED rainbow chase with breathing
     for(var i=0;i<ledArr.length;i++){
       var led=ledArr[i];
-      var hue=((led.userData.li/led.userData.n)+t*0.35+led.userData.mi*0.25)%1.0;
+      if(led.userData.isGlow){
+        // Glow ring pulsing
+        var pulse=0.04+0.03*Math.sin(t*2+led.userData.mi*1.5);
+        led.material.opacity=pulse;
+        var gc=new THREE.Color();
+        gc.setHSL((t*0.1+led.userData.mi*0.25)%1.0,1.0,0.5);
+        led.material.color.copy(gc);
+        continue;
+      }
+      var hue=((led.userData.li/led.userData.n)+t*0.3+led.userData.mi*0.25)%1.0;
       var c=new THREE.Color();
-      c.setHSL(hue,1.0,0.55);
+      c.setHSL(hue,1.0,0.5);
       led.material.color.copy(c);
       led.material.emissive.copy(c);
-      led.material.emissiveIntensity=0.8+0.5*Math.sin(t*5+led.userData.li*0.25);
+      led.material.emissiveIntensity=0.8+0.5*Math.sin(t*5+led.userData.li*0.3);
     }
 
-    // Update LED point lights to follow dominant color
-    for(var l=0;l<ledLights.length;l++){
-      var ledHue=(t*0.35+l*0.25)%1.0;
-      var lc=new THREE.Color();
-      lc.setHSL(ledHue,1.0,0.5);
-      ledLights[l].color.copy(lc);
-      ledLights[l].intensity=0.2+0.15*Math.sin(t*3+l);
-    }
-
-    // Pulse FC LEDs
-    if(parts.fc){
-      parts.fc.children.forEach(function(child){
-        if(child.material&&child.material.emissive){
-          var ei=child.material.emissiveIntensity;
-          if(ei>1){
-            child.material.emissiveIntensity=1.5+Math.sin(t*3)*0.8;
-          }
+    // Animate dust particles
+    if(dustParticles){
+      var positions=dustParticles.geometry.attributes.position.array;
+      for(var i=0;i<positions.length;i+=3){
+        positions[i]+=Math.sin(t*0.3+i)*0.0002;
+        positions[i+1]+=0.00008;
+        positions[i+2]+=Math.cos(t*0.2+i)*0.0002;
+        // Reset particles that drift too high
+        if(positions[i+1]>3.5){
+          positions[i+1]=-0.3;
+          positions[i]=(Math.random()-0.5)*8;
+          positions[i+2]=(Math.random()-0.5)*8;
         }
-      });
+      }
+      dustParticles.geometry.attributes.position.needsUpdate=true;
+      dustParticles.rotation.y=t*0.01;
     }
 
     rend3d.render(scene3d,cam3d);
