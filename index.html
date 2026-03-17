@@ -292,7 +292,7 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
 /* ═══ RESPONSIVE — 3D MODEL MOBILE ═══ */
 @media(max-width:768px){
   #model-legend {
-    position:fixed; bottom:0; left:0; right:0; top:auto;
+    position:absolute; bottom:0; left:0; right:0; top:auto;
     width:100%; max-width:100%; border-radius:16px 16px 0 0;
     max-height:55vh; padding:0 0 calc(8px + env(safe-area-inset-bottom, 0px));
     transform:translateY(calc(100% - 48px));
@@ -388,19 +388,42 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
   .model-spec { font-size:8px; }
 }
 
-/* ═══ 3D MODEL TAB ═══ */
-#model3d { padding:0; }
-#model3d.active { display:block; }
+/* ═══ BEE35 TAB ═══ */
+#bee35 { padding:0; }
+#bee35.active { display:block; }
+.model-viewer {
+  position:relative; width:100vw; height:100vh; height:100dvh;
+  overflow:hidden;
+}
 #modelCanvas {
-  width:100vw; height:100vh; height:100dvh; display:block;
-  cursor:grab; position:relative; z-index:1;
+  width:100%; height:100%; display:block;
+  cursor:grab; position:absolute; top:0; left:0; z-index:1;
   touch-action:none;
 }
 #modelCanvas:active { cursor:grabbing; }
+.scroll-down-hint {
+  position:absolute; bottom:28px; left:50%; transform:translateX(-50%);
+  font-family:'Syne',sans-serif; font-size:11px; letter-spacing:2px;
+  text-transform:uppercase; color:var(--text-dim);
+  animation:pulse 2s ease-in-out infinite; z-index:21;
+  pointer-events:none;
+}
 
 #model-hud {
-  position:fixed; top:0; left:0; right:0; bottom:0;
+  position:absolute; top:0; left:0; right:0; bottom:0;
   pointer-events:none; z-index:20;
+}
+.build-content {
+  position:relative; z-index:1;
+  padding:80px 48px 80px;
+  background:linear-gradient(180deg, var(--bg) 0%, rgba(6,8,12,0.98) 100%);
+}
+@media(max-width:768px){
+  .build-content { padding:60px 20px 60px; }
+}
+@media(max-width:480px){
+  .build-content { padding:48px 14px 48px; }
+  .scroll-down-hint { font-size:9px; bottom:18px; }
 }
 #model-legend {
   position:absolute; top:80px; left:28px;
@@ -498,7 +521,7 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
   <nav id="mainNav">
     <a href="#" class="active" data-tab="hero">Home</a>
     <a href="#" data-tab="basics">Basics</a>
-    <a href="#" data-tab="model3d">3D Model</a>
+    <a href="#" data-tab="bee35">3D Model</a>
     <a href="#" data-tab="components">Components</a>
     <a href="#" data-tab="physics">Physics</a>
     <a href="#" data-tab="freestyle">Freestyle</a>
@@ -512,6 +535,7 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
   <p class="hero-sub">The art and engineering of piloting racing drones through your own eyes — where physics, reflexes, and creativity converge at 150 km/h.</p>
   <div class="hero-stats">
     <div class="hero-stat"><div class="num">150<span>+</span></div><div class="label">km/h top speed</div></div>
+    <div class="hero-stat"><div class="num">&lt;1<span>s</span></div><div class="label">0–100 km/h</div></div>
     <div class="hero-stat"><div class="num">0.02<span>s</span></div><div class="label">latency glass-to-glass</div></div>
     <div class="hero-stat"><div class="num">8<span>:</span>1</div><div class="label">thrust-to-weight</div></div>
     <div class="hero-stat"><div class="num">6<span>DOF</span></div><div class="label">full freedom</div></div>
@@ -565,39 +589,216 @@ nav a.active { background:rgba(255,255,255,0.1); color:#fff; }
   </div>
 </section>
 
-<!-- ═══ 3D MODEL ═══ -->
-<section id="model3d" class="section">
-  <canvas id="modelCanvas"></canvas>
-  <div id="model-hud">
-    <div id="model-legend">
-      <button class="legend-toggle" id="legendToggle"><span class="chevron">▲</span> Components</button>
-      <div class="legend-header" id="legendHeader">
-        <h3>SpeedyBee Bee35</h3>
-        <span class="legend-chevron">▼</span>
+<!-- ═══ BEE35 BUILD ═══ -->
+<section id="bee35" class="section">
+  <div class="model-viewer">
+    <canvas id="modelCanvas"></canvas>
+    <div id="model-hud">
+      <div id="model-legend">
+        <button class="legend-toggle" id="legendToggle"><span class="chevron">▲</span> Components</button>
+        <div class="legend-header" id="legendHeader">
+          <h3>SpeedyBee Bee35</h3>
+          <span class="legend-chevron">▼</span>
+        </div>
+        <div class="legend-items">
+          <div class="legend-item" data-part="frame"><div class="dot" style="background:#4a4a4a"></div><div><div class="lname">Carbon Frame</div><div class="ldesc">Bee35 Pro, 3.5" ducted</div></div></div>
+          <div class="legend-item" data-part="fc"><div class="dot" style="background:#00e5ff"></div><div><div class="lname">FC + ESC Stack</div><div class="ldesc">F405 Mini + BLS 35A</div></div></div>
+          <div class="legend-item" data-part="motors"><div class="dot" style="background:#ff3d5a"></div><div><div class="lname">Motors × 4</div><div class="ldesc">2006 1950KV brushless</div></div></div>
+          <div class="legend-item" data-part="props"><div class="dot" style="background:#a0ffa0"></div><div><div class="lname">Propellers × 4</div><div class="ldesc">3.5" tri-blade</div></div></div>
+          <div class="legend-item" data-part="camera"><div class="dot" style="background:#ffe03d"></div><div><div class="lname">DJI O4 Air Unit Pro</div><div class="ldesc">Camera + VTX + Antenna</div></div></div>
+          <div class="legend-item" data-part="battery"><div class="dot" style="background:#2255bb"></div><div><div class="lname">Tattu 6S LiPo</div><div class="ldesc">1300mAh 120C</div></div></div>
+          <div class="legend-item" data-part="esc"><div class="dot" style="background:#7c4dff"></div><div><div class="lname">4-in-1 ESC</div><div class="ldesc">35A BLHeli_S, 3-6S</div></div></div>
+        </div>
       </div>
-      <div class="legend-items">
-        <div class="legend-item" data-part="frame"><div class="dot" style="background:#4a4a4a"></div><div><div class="lname">Carbon Frame</div><div class="ldesc">3.5" true-X, 3mm arms</div></div></div>
-        <div class="legend-item" data-part="fc"><div class="dot" style="background:#00e5ff"></div><div><div class="lname">Flight Controller</div><div class="ldesc">F405 + BMI270 gyro, 8kHz</div></div></div>
-        <div class="legend-item" data-part="motors"><div class="dot" style="background:#ff3d5a"></div><div><div class="lname">Motors × 4</div><div class="ldesc">1404 4500KV brushless</div></div></div>
-        <div class="legend-item" data-part="props"><div class="dot" style="background:#a0ffa0"></div><div><div class="lname">Propellers × 4</div><div class="ldesc">3.5" tri-blade, 2CW + 2CCW</div></div></div>
-        <div class="legend-item" data-part="camera"><div class="dot" style="background:#ffe03d"></div><div><div class="lname">FPV Camera</div><div class="ldesc">Runcam Nano, 25° tilt</div></div></div>
-        <div class="legend-item" data-part="vtx"><div class="dot" style="background:#ff9800"></div><div><div class="lname">VTX + Antenna</div><div class="ldesc">400mW 5.8GHz, LHCP</div></div></div>
-        <div class="legend-item" data-part="battery"><div class="dot" style="background:#ff3d5a"></div><div><div class="lname">LiPo Battery</div><div class="ldesc">4S 850mAh 75C</div></div></div>
-        <div class="legend-item" data-part="esc"><div class="dot" style="background:#7c4dff"></div><div><div class="lname">4-in-1 ESC</div><div class="ldesc">35A BLHeli_S, DShot600</div></div></div>
+      <div id="model-title">
+        <h2>Bee<span style="color:var(--accent)">35</span></h2>
+        <div class="sub">SpeedyBee · 3.5" Cinewhoop · 6S Build</div>
+        <div class="model-spec">
+          AUW: ~285g (w/ battery)<br>
+          Frame: 155mm ducted<br>
+          Motors: 2006 1950KV<br>
+          Battery: 6S 1300mAh<br>
+          VTX: DJI O4 Pro
+        </div>
+      </div>
+      <div id="model-info"><span class="info-desktop">Drag to orbit · Scroll to zoom · Click legend items to highlight</span><span class="info-mobile">Touch to orbit · Pinch to zoom · Tap below to explore</span></div>
+    </div>
+    <div class="scroll-down-hint">↓ Scroll for build details</div>
+  </div>
+
+  <!-- ═══ BUILD COMPONENT DETAILS ═══ -->
+  <div class="build-content">
+    <div class="section-head">
+      <h2>The <span style="color:var(--accent)">Build</span></h2>
+      <p>Every component in this Bee35 build, what it does, and why it was chosen. A complete 3.5" ducted cinewhoop on 6S power — built for cinematic freestyle and proximity flying.</p>
+    </div>
+
+    <div class="content-grid">
+
+      <!-- DJI O4 Air Unit Pro -->
+      <div class="card" style="grid-column:1/-1">
+        <h3>DJI O4 Air Unit Pro <span class="tag">Camera + VTX + Antenna</span></h3>
+        <p>The camera, video transmitter (VTX), and antenna system combined into one integrated unit. The O4 Pro captures what the pilot sees through the goggles in real-time, while simultaneously recording cinematic footage — eliminating the need for a separate FPV camera, VTX, and action camera. It uses DJI's O4 digital transmission with dual antennas (2T2R), H.265 encoding, and delivers 1080p/100fps to your goggles with as low as 15 ms latency in Racing Mode. The transmission module, camera module, coaxial cable, antennas, and 3-in-1 cable all ship as one package.</p>
+        <div class="fact-box">
+          <span class="fact-label">Why it matters</span>
+          <p>At 32g with a 1/1.3" sensor recording 4K/120fps, the O4 Pro replaces a traditional FPV camera, a separate VTX, two antennas, AND an action camera — that's four components eliminated in one unit. The 155° ultra-wide FOV, 10-bit D-Log M color mode, and up to 15 km range (FCC) give you footage rivalling dedicated action cameras, with auto frequency selection for interference-free flying.</p>
+        </div>
+        <table class="spec-table">
+          <tr><td>Sensor</td><td>1/1.3" CMOS, 155° FOV, F2.8, 12mm equiv.</td></tr>
+          <tr><td>Recording</td><td>4K/120fps, H.265, 10-bit D-Log M, 130 Mbps</td></tr>
+          <tr><td>Latency</td><td>15 ms (Goggles 3 Racing), 19 ms (N3), &lt;30 ms (G2)</td></tr>
+          <tr><td>TX Power</td><td>Up to 33 dBm (FCC), 5.8 GHz, dual antenna 2T2R</td></tr>
+          <tr><td>Range</td><td>15 km (FCC), 8 km (CE), auto frequency selection</td></tr>
+          <tr><td>Weight</td><td>32g (w/ camera), TX: 33.5×33.5×13 mm, Antenna: 2.1g each</td></tr>
+          <tr><td>Input</td><td>7.4-26.4V (2-6S), Betaflight 4.3+ compatible</td></tr>
+          <tr><td>Storage</td><td>4GB built-in + microSD up to 512GB</td></tr>
+        </table>
+        <div class="tag">DJI O4</div><div class="tag">4K/120fps</div><div class="tag">15ms Latency</div>
+        <p style="margin-top:14px;font-size:11px;color:var(--text-dim)">
+          <a href="https://www.dji.com/o4-air-unit/specs" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">Official Specs ↗</a> · 
+          <a href="https://dl.djicdn.com/downloads/DJI_O4_Air_Unit_Series/UM/DJI_O4_Air_Unit_Series_User_Manual_v1.0_en.pdf" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">User Manual (PDF) ↗</a> · 
+          <a href="https://store.dji.com/product/dji-o4-air-unit-pro" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">DJI Store ↗</a>
+        </p>
+      </div>
+
+      <!-- Frame -->
+      <div class="card">
+        <h3>SpeedyBee Bee35 Frame Kit Pro <span class="tag yellow">Frame</span></h3>
+        <p>The carbon fiber skeleton that holds everything together. The Bee35 Pro is a 3.5" ducted cinewhoop frame — the prop guards (ducts) protect the propellers and people nearby, making it safer for indoor and proximity flying while also generating additional thrust via the duct effect.</p>
+        <div class="fact-box">
+          <span class="fact-label">Function</span>
+          <p>The frame defines the drone's flight characteristics. The true-X geometry gives symmetrical thrust distribution on all axes. The ducts add ~15% thrust efficiency at hover by channeling airflow, while protecting props from wall strikes. The 20×20mm stack mount accommodates the F405 Mini stack.</p>
+        </div>
+        <table class="spec-table">
+          <tr><td>Wheelbase</td><td>155mm true-X</td></tr>
+          <tr><td>Material</td><td>3K carbon fiber, 3mm arms</td></tr>
+          <tr><td>Prop Size</td><td>3.5" (with ducted guards)</td></tr>
+          <tr><td>Stack Mount</td><td>20×20mm (M2/M3)</td></tr>
+          <tr><td>Camera</td><td>Adjustable tilt mount</td></tr>
+        </table>
+        <div class="tag">Carbon Fiber</div><div class="tag">Ducted</div>
+        <p style="margin-top:14px;font-size:11px;color:var(--text-dim)">
+          <a href="https://www.speedybee.com/speedybee-bee35-3-5-inch-frame/" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">Official Product Page ↗</a>
+        </p>
+      </div>
+
+      <!-- FC + ESC Stack -->
+      <div class="card">
+        <h3>SpeedyBee F405 Mini BLS 35A Stack <span class="tag">Brain + Power</span></h3>
+        <p>A two-board stack: the flight controller (brain) on top, the 4-in-1 ESC (motor driver) on the bottom. The FC reads the gyroscope 8,000 times per second and computes PID corrections. The ESC translates those corrections into precise motor speed changes, switching up to 35 amps per motor.</p>
+        <div class="fact-box">
+          <span class="fact-label">Function</span>
+          <p>The FC runs Betaflight firmware and handles everything: stabilisation, pilot input interpretation, OSD telemetry, GPS, LEDs, and buzzer. The built-in Bluetooth lets you tune PID values and configure ESC settings wirelessly from your phone via the SpeedyBee app — no laptop needed in the field.</p>
+        </div>
+        <table class="spec-table">
+          <tr><td>MCU</td><td>STM32F405 (168 MHz)</td></tr>
+          <tr><td>Gyro</td><td>ICM-42688-P, 8kHz sampling</td></tr>
+          <tr><td>ESC</td><td>35A continuous / 45A burst, BLHeli_S</td></tr>
+          <tr><td>Input</td><td>3-6S LiPo (11.1-25.2V)</td></tr>
+          <tr><td>BEC</td><td>5V/2A + 9V/3A dual output</td></tr>
+          <tr><td>Features</td><td>Bluetooth, 8MB blackbox, barometer, OSD</td></tr>
+          <tr><td>UARTs</td><td>4 available (6 total), USB-C</td></tr>
+          <tr><td>Mount</td><td>20×20mm, 13.5g total stack</td></tr>
+        </table>
+        <div class="tag">Betaflight</div><div class="tag">Bluetooth</div><div class="tag">DShot600</div>
+        <p style="margin-top:14px;font-size:11px;color:var(--text-dim)">
+          <a href="https://www.speedybee.com/speedybee-f405-mini-bls-35a-20x20-stack/" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">Official Product Page ↗</a>
+        </p>
+      </div>
+
+      <!-- Motors -->
+      <div class="card">
+        <h3>SpeedyBee 2006 1950KV Motors × 4 <span class="tag red">Thrust</span></h3>
+        <p>Four brushless outrunner motors that convert electrical energy into rotational force. The "2006" designation means 20mm stator diameter and 6mm stator height — a sweet spot for 3.5" props on 6S power. At 1950KV, each motor spins 1,950 RPM per volt applied — on a fully charged 6S pack (25.2V), that's nearly 50,000 RPM unloaded.</p>
+        <div class="fact-box">
+          <span class="fact-label">Function</span>
+          <p>Each motor contains a stator (stationary copper windings) and a bell (rotating shell with permanent magnets). When the ESC rapidly switches current through the windings, the magnetic field spins the bell. Two motors spin clockwise, two counter-clockwise — cancelling torque so the quad doesn't spin on its own axis.</p>
+        </div>
+        <table class="spec-table">
+          <tr><td>Size</td><td>2006 (20mm × 6mm stator)</td></tr>
+          <tr><td>KV Rating</td><td>1950KV (for 6S)</td></tr>
+          <tr><td>Voltage</td><td>6S LiPo (22.2-25.2V)</td></tr>
+          <tr><td>Bearings</td><td>Dual ball bearing</td></tr>
+          <tr><td>Shaft</td><td>M2, press-fit prop mount</td></tr>
+        </table>
+        <div class="tag red">Brushless</div><div class="tag">6S Optimized</div>
+        <p style="margin-top:14px;font-size:11px;color:var(--text-dim)">
+          <a href="https://www.speedybee.com/speedybee-2006-1950kv-motor-bee35-3-5-inch-fpv/" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">Official Product Page ↗</a>
+        </p>
+      </div>
+
+      <!-- Battery -->
+      <div class="card">
+        <h3>Tattu 1300mAh 6S 120C LiPo <span class="tag red">Energy</span></h3>
+        <p>The lithium polymer battery — six cells in series providing 22.2V nominal. The 120C rating means it can discharge at 120 times its capacity: 1.3Ah × 120 = 156 amps instantaneously. That's over 3.4 kilowatts of peak electrical power from a pack you can hold in your palm.</p>
+        <div class="fact-box">
+          <span class="fact-label">Function</span>
+          <p>LiPo batteries are the highest power-density option for FPV. The 6S configuration gives more voltage than 4S, meaning motors can spin faster with less current draw — improving efficiency and throttle response. Flight time on this build is approximately 4-6 minutes of mixed flying. Always store at 3.8V/cell and charge in a LiPo-safe bag.</p>
+        </div>
+        <table class="spec-table">
+          <tr><td>Chemistry</td><td>Lithium Polymer (LiPo)</td></tr>
+          <tr><td>Config</td><td>6S1P (22.2V nominal)</td></tr>
+          <tr><td>Capacity</td><td>1300mAh</td></tr>
+          <tr><td>C Rating</td><td>120C burst</td></tr>
+          <tr><td>Connector</td><td>XT60</td></tr>
+          <tr><td>Weight</td><td>~195g</td></tr>
+        </table>
+        <div class="tag red">LiPo Safety</div><div class="tag yellow">4-6 min flight</div>
+        <p style="margin-top:14px;font-size:11px;color:var(--text-dim)">
+          <a href="https://genstattu.com/ta-rl3-120c-1300-6s1p.html" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">Official Product Page ↗</a> · 
+          <a href="https://genstattu.com/tattu-r-line-batteries.html" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">R-Line Series ↗</a>
+        </p>
+      </div>
+
+      <!-- Charger -->
+      <div class="card">
+        <h3>HOTA D6 Pro AC/DC Charger <span class="tag yellow">Ground Support</span></h3>
+        <p>A dual-channel smart charger that replenishes your LiPo packs between flights. The D6 Pro accepts both mains AC power and 12V DC (car battery), so you can charge at home or at the field. It individually balances each of the 6 cells to within millivolts, which is critical for LiPo longevity and safety.</p>
+        <div class="fact-box">
+          <span class="fact-label">Function</span>
+          <p>LiPo cells must be charged to exactly 4.2V each and balanced within 0.01V of each other — overcharging causes fires, undercharging causes permanent damage. The D6 Pro handles this automatically with selectable charge rates. For this 1300mAh 6S pack, a 1C charge (1.3A) takes about an hour; 2C charge (2.6A) takes ~30 minutes.</p>
+        </div>
+        <table class="spec-table">
+          <tr><td>Input</td><td>AC 100-240V / DC 7-28V</td></tr>
+          <tr><td>Channels</td><td>Dual (charge two packs simultaneously)</td></tr>
+          <tr><td>Power</td><td>2 × 325W (AC), 2 × 350W (DC)</td></tr>
+          <tr><td>Cells</td><td>1-6S LiPo/LiHV/Li-Ion/LiFe, 1-16S NiMH</td></tr>
+          <tr><td>Current</td><td>0.1-15A per channel</td></tr>
+          <tr><td>Balance</td><td>Individual cell monitoring, ±0.01V</td></tr>
+        </table>
+        <div class="tag yellow">Balance Charging</div><div class="tag">AC/DC</div>
+        <p style="margin-top:14px;font-size:11px;color:var(--text-dim)">
+          <a href="https://www.manualslib.com/manual/3041117/Hota-D6-Pro.html" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">User Manual ↗</a> · 
+          <a href="http://www.hota-exp.com/index.php/service_l_2.html" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">HOTA Downloads ↗</a>
+        </p>
+      </div>
+
+      <!-- Capacitor -->
+      <div class="card">
+        <h3>Low-ESR Capacitor 1000μF 35V <span class="tag">Power Filter</span></h3>
+        <p>A small but critical component soldered directly across the battery input pads of the ESC. It smooths out the violent voltage spikes that occur when motors rapidly change speed — which happens thousands of times per second during aggressive flying.</p>
+        <div class="fact-box">
+          <span class="fact-label">Function</span>
+          <p>"Low-ESR" means low Equivalent Series Resistance — the capacitor can absorb and release energy very quickly. Without it, voltage transients from the motors feed back into the ESC and FC, causing electrical noise that corrupts gyro readings, creates video static, and can even destroy electronics. It's cheap insurance for the entire electrical system.</p>
+        </div>
+        <table class="spec-table">
+          <tr><td>Capacitance</td><td>1000μF</td></tr>
+          <tr><td>Voltage</td><td>35V (handles 6S peak of ~25.2V)</td></tr>
+          <tr><td>Type</td><td>Low-ESR electrolytic</td></tr>
+          <tr><td>Mount</td><td>Soldered to ESC battery pads</td></tr>
+          <tr><td>Purpose</td><td>Voltage spike suppression, noise filtering</td></tr>
+        </table>
+        <div class="tag">Noise Filter</div><div class="tag">ESC Protection</div>
+      </div>
+
+    </div>
+
+    <div style="max-width:700px;margin:48px auto 0">
+      <div class="fact-box">
+        <span class="fact-label">Build notes</span>
+        <p>This build runs the DJI O4 Pro as an all-in-one camera and VTX — no separate FPV camera needed. The F405 stack connects to the O4 via UART1 for OSD data. The 1000μF cap goes directly on the ESC battery pads, as close to the XT60 pigtail as possible. Motor wire order (R/B/Y) doesn't matter — motor direction is reversed in software via the SpeedyBee app's wireless ESC configuration.</p>
       </div>
     </div>
-    <div id="model-title">
-      <h2>Bee<span style="color:var(--accent)">35</span></h2>
-      <div class="sub">SpeedyBee · 3.5" Freestyle</div>
-      <div class="model-spec">
-        AUW: ~185g (w/ battery)<br>
-        Frame: 155mm true-X<br>
-        Motors: 1404 4500KV<br>
-        Battery: 4S 850mAh<br>
-        VTX: 400mW 5.8GHz
-      </div>
-    </div>
-    <div id="model-info"><span class="info-desktop">Drag to orbit · Scroll to zoom · Click legend items to highlight</span><span class="info-mobile">Touch to orbit · Pinch to zoom · Tap below to explore</span></div>
   </div>
 </section>
 
@@ -979,12 +1180,8 @@ document.querySelectorAll('#mainNav a').forEach(link => {
     window.scrollTo(0, 0);
     // Model HUD
     const mhud = document.getElementById('model-hud');
-    if (mhud) mhud.style.display = tab === 'model3d' ? 'block' : 'none';
-    // Lock body scroll when 3D model is active (prevents mobile bounce)
-    document.body.style.overflow = tab === 'model3d' ? 'hidden' : '';
-    document.body.style.position = tab === 'model3d' ? 'fixed' : '';
-    document.body.style.width = tab === 'model3d' ? '100%' : '';
-    if (tab === 'model3d') {
+    if (mhud) mhud.style.display = tab === 'bee35' ? 'block' : 'none';
+    if (tab === 'bee35') {
       buildModel();
       if (rend3d) {
         rend3d.setSize(window.innerWidth, window.innerHeight);
@@ -2018,10 +2215,13 @@ function positionCam(){
 }
 
 function highlight(name){
-  var tg=parts[name];
-  if(!tg)return;
+  // DJI O4 = camera + vtx + antenna combined
+  var targets=[];
+  if(name==='camera'){targets.push(parts.camera);if(parts.vtx)targets.push(parts.vtx);}
+  else{var tg=parts[name];if(tg)targets.push(tg);}
+  if(!targets.length)return;
   var set={};
-  tg.traverse(function(c){if(c.isMesh)set[c.id]=true;});
+  targets.forEach(function(tg){tg.traverse(function(c){if(c.isMesh)set[c.id]=true;});});
   drone.traverse(function(c){
     if(c.isMesh&&c.material){
       if(!c.userData._oo){c.userData._oo=c.material.opacity;c.userData._ot=c.material.transparent;}
@@ -2041,7 +2241,7 @@ function unhighlight(){
 }
 
 function animateModel(){
-  if(activeMode==='model3d'&&rend3d&&cam3d&&scene3d){
+  if(activeMode==='bee35'&&rend3d&&cam3d&&scene3d){
     var t=Date.now()*0.001;
 
     // Auto-rotate when idle (smooth)
